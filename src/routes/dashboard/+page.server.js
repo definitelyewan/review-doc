@@ -469,7 +469,7 @@ export const actions = {
     }
 
     try {
-        await db.query(`INSERT INTO award(award_name, year, media_id, user_id) VALUES('${award_name}', '${year}', ${media_id}, ${locals.user.id})`);
+        console.log(await db.query(`INSERT INTO award(award_name, award_issue_year, media_id, user_id) VALUES('${award_name}', '${year}', ${media_id}, ${locals.user.id})`));
     } catch (error) {
         console.error('Database query failed:', error);
         return {success: false, message: 'Try again later'};
