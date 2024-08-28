@@ -89,7 +89,7 @@ export const actions = {
       review_json.push(bullet);
     }
     
-    await db.query(`UPDATE review SET review_score = ${review_score}, review_bullets = '${JSON.stringify(review_json)}', review_sub_name = ${review_sub_name ? `'${review_sub_name}'` : 'NULL'}, review_platform = ${review_platform ? `'${review_platform}'` : 'NULL'} 
+    await db.query(`UPDATE review SET review_score = ${review_score}, review_bullets = '${db.sanitize_input(JSON.stringify(review_json))}', review_sub_name = ${review_sub_name ? `'${db.sanitize_input(review_sub_name)}'` : 'NULL'}, review_platform = ${review_platform ? `'${db.sanitize_input(review_platform)}'` : 'NULL'} 
                     WHERE review_id = ${review_id}`);
     return { success: true };
   },
@@ -122,7 +122,7 @@ export const actions = {
     }
 
     await db.query(`INSERT INTO review(media_id, review_sub_name, review_bullets, review_score, review_platform, user_id) 
-                    VALUES(${media_id}, ${review_sub_name ? `'${review_sub_name}'` : 'NULL'}, '${JSON.stringify(review_json)}', '${review_score}',  ${review_platform ? `'${review_platform}'` : 'NULL'}, ${locals.user.id})`);
+                    VALUES(${media_id}, ${review_sub_name ? `'${db.sanitize_input(review_sub_name)}'` : 'NULL'}, '${db.sanitize_input(JSON.stringify(review_json))}', '${review_score}',  ${review_platform ? `'${db.sanitize_input(review_platform)}'` : 'NULL'}, ${locals.user.id})`);
     return { success: true };
   },
   all_types: async () => {
@@ -287,7 +287,7 @@ export const actions = {
     const media_directors = form_data.get('media_directors');
 
     console.log(await db.query(`INSERT INTO media(media_name, media_type, media_release_date_range_start, media_release_date_range_end, user_id)
-            VALUES('${media_name}', '${media_type}', '${media_release_date_range_start}', ${media_release_date_range_end ? `'${media_release_date_range_end}'` : 'NULL'}, ${locals.user.id})`));
+            VALUES('${db.sanitize_input(media_name)}', '${media_type}', '${media_release_date_range_start}', ${media_release_date_range_end ? `'${media_release_date_range_end}'` : 'NULL'}, ${locals.user.id})`));
     
     const result = await db.query(`SELECT media_id FROM media WHERE media_id = (SELECT MAX(media_id) FROM media)`);
     const media_id = result[0].media_id;
