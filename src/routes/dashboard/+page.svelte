@@ -50,6 +50,7 @@
         media_date_range_start: '',
         media_date_range_end: ''
     }
+    let award_name = '';
 
     storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 
@@ -74,6 +75,10 @@
             media_id = edit_values.media_id;
         // add
         } else if (value === 2) {
+            media_type = edit_values.media_type;
+        // award nominate
+        } else if (value === 3) {
+            media_id = edit_values.media_id;
             media_type = edit_values.media_type;
         }
 
@@ -116,6 +121,11 @@
         <RadioItem bind:group={value} name="justify" value={2}>
             <form action="?/all_types" method="POST" use:enhance on:submit|preventDefault>
                 <button class="flex-grow w-full" type="submit" on:click={() => { value = 2; edit_values = null; }}>Add</button>
+            </form>
+        </RadioItem>
+        <RadioItem bind:group={value} name="justify" value={3}>
+            <form action="?/reviewed_this_year" method="POST" use:enhance on:submit|preventDefault>
+                <button class="flex-grow w-full" type="submit" on:click={() => { value = 3; edit_values = null; }}>Award</button>
             </form>
         </RadioItem>
     </RadioGroup>
@@ -665,12 +675,83 @@
             </form>
         </div>
     {/if}
-{:else}
-    <div class="flex flex-col items-center justify-center p-2 text-center">
-        <h1 class="text-2xl">Dashboard</h1>
-        <p class="text-xl">Welcome to the dashboard, {$page.data.user.name}!</p>
-        <p class= "text-md">From here you can Review, Modify, and Add content to the site Along with changing your user profile.</p>
+{:else if value === 3}
+    <div class="relative card mt-2 p-2 shadow-lg rounded-lg flex items-center justify-center mx-auto mr-2 ml-2">
+        <div class="flex flex-col w-full">
+            <div class="grid grid-cols-1 w-full p-2">
+                <p class="text-center">Search for media</p>
+                <div class="relative w-full">
+                    <input
+                        class="input autocomplete mt-2 z-1 w-full"
+                        type="search"
+                        name="autocomplete-search"
+                        bind:value={search_val}
+                        placeholder="Search..."
+                        use:popup={popup_settings}
+                    />
+                    <div data-popup="popupAutocomplete" class="absolute top-0 left-0 right-0 z-50 rounded-lg p-4 shadow-lg bg-surface-700 w-full">
+                        <Autocomplete
+                            bind:input={search_val}
+                            options={filtered_options}
+                            on:selection={on_popup_select}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    {#if edit_values !== null}
+        <p class="text-2xl p-2">Nominate {edit_values.media_name} For:</p>
+        <div class="flex flex-wrap items-center justify-center mt-2 mb-2 mr-2 ml-2">
+            {#if edit_values.media_type === 'game'}
+                <button type="button" on:click={() => award_name = 'Game of the Year'} class="p-1">
+                    <span class="badge variant-filled text-xl p-2">Game of the Year</span>
+                </button>
+            {/if}
+            {#if edit_values.media_type === 'movie'}
+                <button type="button" on:click={() => award_name = 'Movie of the Year'} class="p-1">
+                    <span class="badge variant-filled text-xl p-2">Movie of the Year</span>
+                </button>
+            {/if}
+            {#if edit_values.media_type === 'tv'}
+                <button type="button" on:click={() => award_name = 'Show of the Year'} class="p-1">
+                    <span class="badge variant-filled text-xl p-2">Show of the Year</span>
+                </button>
+            {/if}
+
+            <button type="button" on:click={() => award_name = 'Story of the Year'} class="p-1">
+                <span class="badge variant-filled text-xl p-2">Story of the Year</span>
+            </button>
+            <button type="button" on:click={() => award_name = 'Cinematography of the Year'} class="p-1">
+                <span class="badge variant-filled text-xl p-2">Cinematography of the Year</span>
+            </button>
+            <button type="button" on:click={() => award_name = 'Best Animation of the Year'} class="p-1">
+                <span class="badge variant-filled text-xl p-2">Best Animation of the Year</span>
+            </button>
+            <button type="button" on:click={() => award_name = 'Best of the Year'} class="p-1">
+                <span class="badge variant-filled text-xl p-2">Best of the Year</span>
+            </button>
+        </div>
+        <p class="text-sm p-2"><i>Select a single award to nominate then click the nominate button. The current nomination is for <b>{award_name}</b></i></p>
+        
+        <form action="?/nominate_media" method="POST" use:enhance on:submit|preventDefault class="flex justify-center items-center">
+            <button class="mt-2 mb-2 mr-2 ml-2 text-xl text-center badge variant-filled">Nominate</button>
+        </form>
+        
+        {#if form?.success === true}
+            <p class="text-center text-success-500">Media has been nominated!</p>
+        {:else if form?.success === false}
+            <p class="text-center text-error-500">Media failed to nominate! because {form.message}</p>
+
+        {/if}
+    
+    {/if}
+{:else}
+<div class="flex flex-col items-center justify-center p-2 text-center">
+    <h1 class="text-2xl">Dashboard</h1>
+    <p class="text-xl">Welcome to the dashboard, {$page.data.user.name}!</p>
+    <p class= "text-md">From here you can Review, Modify, and Add content to the site Along with changing your user profile.</p>
+</div>
 {/if}
 
 <div class="block mt-2 mb-1 mr-1 ml-1 rounded variant-filled md:border-0 md:p-0">

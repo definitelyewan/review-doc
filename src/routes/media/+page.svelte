@@ -8,10 +8,8 @@
     import { Paginator } from '@skeletonlabs/skeleton';
     import corr from '$lib/client/corrections.js';
     
-
-    const media = data.media_data.media;
-    const media_options = [];
-
+    const media_options = data.media_data.media;
+    const og_length = media_options.length;
     /**
      * search bar 
     */
@@ -29,19 +27,6 @@
         window.location.href = `/media/${search_val}`;
     }
 
-    media.forEach(info => {
-        media_options.push({
-            label: info.media_name,
-            value: {
-                id: info.media_id,
-                release_start: info.media_release_date_range_start,
-                release_end: info.media_release_date_range_end,
-                sub_name: info.media_sub_name,
-                type : info.media_type
-            }
-        });
-    });
-
     // Computed property to filter and limit options based on search input
     $: filtered_options = media_options
         .filter(option => option.label.toLowerCase().includes(search_val.toLowerCase()))
@@ -55,7 +40,7 @@
 	    page: 0,
 	    limit: 10,
 	    size: media_options.length,
-	    amounts: [10,20,50,media.length],
+	    amounts: [10,20,50,og_length],
     };
     $: paginated_source = media_options.slice(
 	    pagination_settings.page * pagination_settings.limit,

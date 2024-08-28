@@ -434,5 +434,47 @@ export const actions = {
     }
 
     return ({lookup: tmdb_json});
+  },
+  reviewed_this_year: async ({locals}) => {
+
+    const media = await db.query(`SELECT media.* FROM media INNER JOIN review WHERE media.media_id = review.media_id AND review.user_id = ${locals.user.id} AND YEAR(review.review_date) = YEAR(CURDATE())`);
+  
+    let searchable_media = [];
+    media.forEach(info => {
+      searchable_media.push({
+        label: `${info.media_name}`,
+        value: {
+          media_name: info.media_name,
+          media_type: info.media_type,
+          media_id: info.media_id
+        }
+      });
+    });
+
+
+    return {search: searchable_media};
+  },
+  nominate_media: async ({request, locals}) => {
+    const form_data = await request.formData();
+    const award_name = form_data.get('award_name');
+    const media_id = form_data.get('media_id');
+    const year = new Date().getFullYear();
+
+    if (award_name === undefined) {
+      return {success: false, message: 'No award picked'};
+    }
+
+    if (media_id === undefined) {
+      return {success: false, message: 'No media selected'};
+    }
+
+    try {
+        await db.query(`INSERT INTO award(award_name, year, media_id, user_id) VALUES('${award_name}', '${year}', ${media_id}, ${locals.user.id})`);
+    } catch (error) {
+        console.error('Database query failed:', error);
+        return {success: false, message: 'Try again later'};
+    }
+
+    return {success: true};
   }
 };
