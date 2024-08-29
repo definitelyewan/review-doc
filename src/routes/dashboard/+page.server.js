@@ -144,7 +144,7 @@ export const actions = {
   igdb_search: async ({request}) => {
     const form_data = await request.formData();
     const media_search_word = form_data.get('media_search_word');
-    const igdb_init = await igdb.query('games',`fields *; search "${media_search_word}"; where (version_parent = null & (category = 0 | category = 10 | category = 8 | category = 4 | catagory = 9));limit 10;`);
+    const igdb_init = await igdb.query('games',`fields *; search "${media_search_word}"; where (version_parent = null & (category = 0 | category = 10 | category = 8 | category = 4 | category = 9));limit 10;`);
     
     let igdb_json = [];
     let usable_db = [];
