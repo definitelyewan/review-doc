@@ -2,14 +2,8 @@
 import db from '$lib/server/db.js';
 import igdb from '$lib/server/igdb.js';
 import { redirect } from '@sveltejs/kit';
-import path from 'path';
-import fs from 'fs';
-import http from 'http';
-import https from 'https';
-import mime from 'mime';
 import security from '../../lib/server/security';
 import tmdb from '../../lib/server/tmdb';
-import { lookup } from 'dns';
 
 
 export const load = async ({ locals }) => {
