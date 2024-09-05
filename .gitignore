@@ -8,6 +8,7 @@ node_modules
 img
 db_snapshots
 .vscode
+staging
 
 # OS
 .DS_Store
