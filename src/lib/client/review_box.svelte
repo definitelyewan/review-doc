@@ -63,7 +63,7 @@
     {#if review.review_platform != null}
         <div class="flex items-center mt-2">
             <p class="text-sm">Experienced on/in {review.review_platform}</p>
-            <img alt="" src="../{corr.platform_to_svg_name(review.review_platform)}" class="w-4 h-4 ml-2" />
+            <img alt="." src="../{corr.platform_to_svg_name(review.review_platform)}" class="w-6 h-6 ml-2" />
         </div>
     {/if}
 </div>

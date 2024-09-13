@@ -22,27 +22,27 @@
                 <a href="/"><strong class="text-xl uppercase">REVIEW DOC</strong></a>
             </svelte:fragment>
             <svelte:fragment slot="trail">
-                <div class="relative">
+                <div class="relative z-5">
                     <button
-                        class="md:hidden btn btn-sm variant-ghost-surface"
+                        class="md:hidden btn btn-sm variant-ghost-surface z-5"
                         on:click={() => isMenuOpen = !isMenuOpen}>
                         Menu ☰
                     </button>
                     
-                    <div class={`absolute top-full left-0 w-full md:static ${isMenuOpen ? 'block' : 'hidden'} md:flex z-50`}>
-                        <ul class="font-medium flex flex-col md:p-0 mt-2 border bg-surface-700 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 z-50">
+                    <div class={`z-5 absolute top-full left-0 w-full md:static ${isMenuOpen ? 'block' : 'hidden'} md:flex`}>
+                        <ul class="font-medium flex flex-col md:p-0 mt-2 border bg-surface-700 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 z-5">
                             <li>
-                                <a href="/media" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0">Media</a>
+                                <a href="/media" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0 z-5">Media</a>
                             </li>
                             <li>
-                                <a href="/award" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0">Awards</a>
+                                <a href="/award" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0 z-5">Awards</a>
                             </li>
                             <li>
-                                <a href="/scale" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0">Scale</a>
+                                <a href="/scale" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0 z-5">Scale</a>
                             </li>
                             <li>
                                 {#if $page.data.user}
-                                <button class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0" on:click={() => window.location.href = `/dashboard`}>
+                                <button class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0 z-5" on:click={() => window.location.href = `/dashboard`}>
                                     Dashboard
                                 </button>
                                 {/if}

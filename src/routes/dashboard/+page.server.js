@@ -44,12 +44,14 @@ export const actions = {
     return { search: searchable_reviews };
   },
   all_media: async () => {
-    const media = await db.query(`SELECT media_id, media_name, media_type FROM media`);
+    const medias = await db.query(`SELECT media_id, media_name, media_release_date_range_start, media_type FROM media`);
     let searchable_media = [];
 
-    media.forEach(media => {
+    medias.forEach(media => {
+      let release_year = new Date(media.media_release_date_range_start).getFullYear();;
+
       searchable_media.push({
-        label: `${media.media_name} (${media.media_type})`,
+        label: `${media.media_name} (${release_year})`,
         value: {
           media_id: `${media.media_id}`
         }

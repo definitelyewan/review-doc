@@ -1,6 +1,3 @@
-import { platform } from "@floating-ui/dom";
-
-
 
 /**
  * Converts a platform name to a svg file name
@@ -12,9 +9,9 @@ function platform_to_svg_name(platform_name) {
     platform_name = platform_name.toLowerCase()
     platform_name = platform_name.replace(/\s/g, '');
 
-    if (platform_name == "pc" || platform_name == "windows" || platform_name == "mac" || platform_name == "linux" || platform_name == "stream") {
+    if (platform_name == "pc" || platform_name == "windows" || platform_name == "mac" || platform_name == "linux" || platform_name == "steam") {
         return "PC.svg";
-    } else if (platform_name == "ps4" || platform_name == "ps5" || platform_name == "ps1" || platform_name == "ps2" || platform_name == "ps3") {
+    } else if (platform_name == "ps4" || platform_name == "ps5" || platform_name == "ps1" || platform_name == "ps2" || platform_name == "ps3" || platform_name == "playstation") {
         return "PSN.svg";
     } else if (platform_name == "switch" || platform_name == "wii" || platform_name == "wiiu" || platform_name == "dolphine" || platform_name == "ds"
             || platform_name == "3ds" || platform_name == "gamecube" || platform_name == "gameboy" || platform_name == "gba" || platform_name == "n64") {
@@ -27,6 +24,14 @@ function platform_to_svg_name(platform_name) {
         return "Disney.svg";
     } else if (platform_name == "crave") {
         return "Crave.svg";
+    } else if (platform_name == "amazon" || platform_name == "amazonprime" || platform_name == "prime" || platform_name == "primevideo") {
+        return "Prime.svg";
+    } else if (platform_name == "foxtheatre") {
+        return "FoxTheatre.png";
+    } else if (platform_name == "kanopy") {
+        return "Kanopy.png";
+    } else if (platform_name == "tiff") {
+        return "TIFF.svg";
     }
 
 
