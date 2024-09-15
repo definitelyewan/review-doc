@@ -735,6 +735,8 @@
         <p class="text-sm p-2"><i>Select a single award to nominate then click the nominate button. The current nomination is for <b>{award_name}</b></i></p>
         
         <form action="?/nominate_media" method="POST" use:enhance on:submit|preventDefault class="flex justify-center items-center">
+            <input type="hidden" name="award_name" value={award_name} />
+            <input type="hidden" name="media_id" value={edit_values.media_id} />
             <button class="mt-2 mb-2 mr-2 ml-2 text-xl text-center badge variant-filled">Nominate</button>
         </form>
         

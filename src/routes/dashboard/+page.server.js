@@ -465,7 +465,13 @@ export const actions = {
     }
 
     try {
-        console.log(await db.query(`INSERT INTO award(award_name, award_issue_year, media_id, user_id) VALUES('${award_name}', '${year}', ${media_id}, ${locals.user.id})`));
+        const already_nominated = await db.query(`SELECT * FROM award WHERE media_id = ${media_id} AND user_id = ${locals.user.id} AND award_issue_year = ${year}`);
+        
+        if (already_nominated.length > 0) {
+            return {success: false, message: 'Already nominated'};
+        }
+        
+        const res = await db.query(`INSERT INTO award(award_name, award_issue_year, media_id, user_id) VALUES('${award_name}', '${year}', ${media_id}, ${locals.user.id})`);
     } catch (error) {
         console.error('Database query failed:', error);
         return {success: false, message: 'Try again later'};
