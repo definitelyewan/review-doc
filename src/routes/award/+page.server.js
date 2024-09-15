@@ -36,6 +36,8 @@ export const load = async(loadEvent) => {
 
         }
 
+        block.years = block.years.filter(year => year.media.length > 0);
+
         if (block.award_name == "Best of the Year") {
             best_of.push(block.years);
         } else {
