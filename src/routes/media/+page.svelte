@@ -6,10 +6,20 @@
     import { storePopup } from '@skeletonlabs/skeleton';
     import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
     import { Paginator } from '@skeletonlabs/skeleton';
+    import { page } from '$app/stores';
     import corr from '$lib/client/corrections.js';
     
     const media_options = data.media_data.media;
     const og_length = media_options.length;
+    const url_params = new URLSearchParams($page.url.search);
+    const specific_page = url_params.get('page');
+
+    function scrollToTop() {
+        goto('#top', { replaceState: true });
+    }
+
+
+
     /**
      * search bar 
     */
@@ -42,6 +52,11 @@
 	    size: media_options.length,
 	    amounts: [10,20,50,og_length],
     };
+
+    if (!isNaN(specific_page)) {
+        pagination_settings.page = specific_page;
+    }
+
     $: paginated_source = media_options.slice(
 	    pagination_settings.page * pagination_settings.limit,
 	    pagination_settings.page * pagination_settings.limit + pagination_settings.limit
@@ -87,42 +102,48 @@
 	showPreviousNextButtons="{true}"
 />
 
+<div id="top"></div>
+
 <ul class="mt-2">
     <div class="flex flex-wrap -mx-2 items-center justify-center">
         {#each paginated_source as row}
-            <a href="media/{row.value.id}">
-                <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0 w-64 h-80">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-10 rounded-lg z-10">
-                        <div class="absolute inset-0 bg-cover bg-center rounded-lg" style="background-image: url('/api/media/image/{row.value.id}/banner');"></div>
+            <div class="p-1 md:w-1/2 w-full">
+                <a href="../media/{row.value.id}">
+                    <div class="relative card p-2 shadow-lg rounded-lg flex items-center col-span-1 lg:col-span-2" style="min-width: 300px;">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-40 rounded-lg z-5">
+                            <div class="-z-10 absolute inset-0 bg-cover bg-center rounded-lg" style="background-image: url('/api/media/image/{row.value.id}/banner'); object-fit: cover;"></div>
+                        </div>
+                        <div class="z-0 flex-shrink-0 flex items-center">
+                            <img
+                                class="rounded-md w-32 h-auto"
+                                src="/api/media/image/{row.value.id}/cover"
+                                alt={row.label}
+                            />
+                            <div class="grid grid-col-1">
+                                <div class="ml-4">
+                                    <h2 class="text-xl break-words max-w-[12ch] sm:max-w-none">{row.label}</h2>
+                                </div>
+                                <div class="ml-4">
+                                    {#if row.value.release_end == null}
+                                        <p class="text-left text-sm mb-2 z-20">Release {row.value.release_start.split('T')[0]}</p>
+                                    {:else}
+                                        <p class="text-left text-sm mb-2 z-20">Release {row.value.release_start.split('T')[0]} - {row.value.release_end.split('T')[0]}</p>
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
-                    {#if row.label.length > 15}
-                        <p class="text-center text-xl mb-2 z-20" style="font-size: {corr.calculate_title_font_size(row.label, 15, 20)}">{row.label}</p>
-                    {:else}
-                        <p class="text-center text-xl mb-2 z-20">{row.label}</p>
-                    {/if}
-
-                    <div class="flex-shrink-0 w-full flex justify-center items-center z-20">
-                        <img
-                            class="rounded-md w-40 h-56 object-cover"
-                            src="/api/media/image/{row.value.id}/cover"
-                            alt={row.label}
-                        />
-                    </div>
-
-                    {#if row.value.release_end == null}
-                        <p class="text-center text-sm mb-2 z-20">Release {row.value.release_start.split('T')[0]}</p>
-                    {:else}
-                        <p class="text-center text-sm mb-2 z-20">Release {row.value.release_start.split('T')[0]} - {row.value.release_end.split('T')[0]}</p>
-                    {/if}
-                </div>
-            </a>
+                </a>
+            </div>
         {/each}
     </div>
 </ul>
 
-<Paginator class="mt-2 mr-2 ml-2 mb-2"
-	bind:settings={pagination_settings}
-	showFirstLastButtons="{false}"
-	showPreviousNextButtons="{true}"
-/>
+
+<button class="w-full" on:click={scrollToTop}>
+    <Paginator class="mt-2 mr-2 ml-2"
+        bind:settings={pagination_settings}
+        showFirstLastButtons={false}
+        showPreviousNextButtons={true}
+    />
+</button>
