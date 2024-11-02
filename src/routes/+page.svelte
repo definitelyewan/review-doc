@@ -110,26 +110,33 @@
 
 <div class="mt-2 mr-2 ml-2 flex flex-col items-center">
     <div class="w-full max-w-4xl">
-        <div class="flex justify-center mb-4 items-end space-x-1" style="flex-wrap: nowrap; overflow-x: hidden;">
+        <div class="flex justify-center mb-4 items-end space-x-1 overflow-x-hidden flex-nowrap">
             {#each score_counts as { review_score, count }}
-                <div class="flex flex-col items-center" style="flex: 1 0 auto;">
+                <div class="flex flex-col items-center flex-1">
                     <span>{count}</span>
 
                     {#if review_score == 0}
-                        <div class="bg-red-500 w-full rounded-t-md" style="height: {Number(count) * 2}px"></div>
+                        <a href="/distribution/{review_score}" class="bg-red-500 hover:bg-red-200 w-full rounded-t-md" style="height: {Number(count) * 2}px">
+                        </a>
                     {:else if review_score <= 2}
-                        <div class="bg-orange-500 w-full rounded-t-md" style="height: {Number(count) * 2}px"></div>
+                        <a href="/distribution/{review_score}" class="bg-orange-500 hover:bg-orange-200 w-full rounded-t-md" style="height: {Number(count) * 2}px">
+                        </a>
                     {:else if review_score <= 4}
-                        <div class="bg-yellow-500 w-full rounded-t-md" style="height: {Number(count) * 2}px"></div>
+                        <a href="/distribution/{review_score}" class="bg-yellow-500 hover:bg-yellow-200 w-full rounded-t-md" style="height: {Number(count) * 2}px">
+                        </a>
                     {:else if review_score <= 6}
-                        <div class="bg-green-500 w-full rounded-t-md" style="height: {Number(count) * 2}px"></div>
+                        <a href="/distribution/{review_score}" class="bg-green-500 hover:bg-green-200 w-full rounded-t-md" style="height: {Number(count) * 2}px">
+                        </a>
                     {:else if review_score <= 8}
-                        <div class="bg-blue-500 w-full rounded-t-md" style="height: {Number(count) * 2}px"></div>
+                        <a href="/distribution/{review_score}" class="bg-blue-500 hover:bg-blue-200 w-full rounded-t-md" style="height: {Number(count) * 2}px">
+                        </a>
                     {:else if review_score <= 10}
-                        <div class="bg-purple-500 w-full rounded-t-md" style="height: {Number(count) * 2}px"></div>
+                        <a href="/distribution/{review_score}" class="bg-purple-500 hover:bg-purple-200 w-full rounded-t-md" style="height: {Number(count) * 2}px">
+                        </a>
                     {/if}
                     
                     <span class="mt-2">{review_score}'s</span>
+                    
                 </div>
             {/each}
         </div>
