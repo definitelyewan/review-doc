@@ -40,8 +40,8 @@
     <div bind:this={elemNewestMovies} class="snap-x snap-mandatory scroll-smooth flex gap-2 pb-2 overflow-x-auto">
         {#each newest_reviews as review}
             <a href="media/{review.media.media_id}?review={review.review_id}">
-                <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0 w-40 h-96">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-10 rounded-lg z-10">
+                <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0 w-40 h-96 -z-10">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-10 rounded-lg z-0">
                         <div class="absolute inset-0 bg-cover bg-center rounded-lg" style="background-image: url('/api/media/image/{review.media.media_id}/banner');"></div>
                     </div>
                     <div class="flex items-center">
@@ -54,28 +54,28 @@
                     </div>
                     <div class="flex-shrink-0 w-full flex justify-center items-center">
                         <img
-                            class="rounded-md w-36 h-52 object-cover"
+                            class="z-10 rounded-md w-36 h-52 object-cover"
                             src="/api/media/image/{review.media.media_id}/cover"
                             alt={review.media.media_name}
                         />
                     </div>
-                    {#if review.media.media_name.length > 7}
-                        <p class="text-center text-xl mb-2" style="font-size: {corr.calculate_title_font_size(review.media.media_name, 7, 20)}">{review.media.media_name}</p>
-                    {:else}
-                        <p class="text-center text-xl mb-2">{review.media.media_name}</p>
-                    {/if}
-
+                    
+                    <p class="text-center text-xl mb-2" style="font-size: {corr.calculate_title_font_size(review.media.media_name, 7, 20)}">{review.media.media_name}</p>
                     <ReviewRadial class="mt-2" score={review.review_score} width="w-16"/>
                     
                     {#if review.review_sub_name != null}
                         {#if review.media.media_type == 'tv'}
                             {#if isNaN(review.review_sub_name) === true}
-                                <p class="text-center mb-1">Seasons {review.review_sub_name.split(' ')[0]} - {review.review_sub_name.split(' ')[review.review_sub_name.split(' ').length - 1]}</p>
+                                <p class="text-center text-xl mb-2" style="font-size: {corr.calculate_title_font_size(`Seasons ${review.review_sub_name.split(' ')[0]} - ${review.review_sub_name.split(' ')[review.review_sub_name.split(' ').length - 1]}`, 7, 20)}">
+                                    Seasons {review.review_sub_name.split(' ')[0]} - {review.review_sub_name.split(' ')[review.review_sub_name.split(' ').length - 1]}
+                                </p>
                             {:else}
                                 <p class="text-center mb-1">Season {review.review_sub_name}</p>
                             {/if}
                         {:else}
-                            <p class="text-xl text-center mb-1">{review.review_sub_name}</p>
+                            <p class="text-center text-xl mb-2" style="font-size: {corr.calculate_title_font_size(review.review_sub_name, 7, 20)}">
+                                {review.review_sub_name}
+                            </p>
                         {/if}
                     {/if}
                 </div>
@@ -149,22 +149,19 @@
                 <div bind:this={elemMostAcclaimedMovies} class="snap-x snap-mandatory scroll-smooth flex gap-2 pb-2 overflow-x-auto">
                     {#each most_acclaimed as review}
                         <a href="media/{review.media_id}">
-                            <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0 w-40 h-62">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-10 rounded-lg z-10">
-                                    <div class="absolute inset-0 bg-cover bg-center rounded-lg" style="background-image: url('/api/media/image/{review.media_id}/banner');"></div>
+                            <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0 w-40 h-64 -z-10">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-10 rounded-lg z-0">
+                                    <div class="absolute inset-0 bg-cover bg-center rounded-lg" style="background-image: url('/api/media/image/{review.media_id}}/banner');"></div>
                                 </div>
                                 <div class="flex-shrink-0 w-full flex justify-center items-center">
                                     <img
-                                        class="rounded-md w-36 h-52 object-cover"
+                                        class="z-10 rounded-md w-36 h-52 object-cover"
                                         src="/api/media/image/{review.media_id}/cover"
                                         alt={review.media_name}
                                     />
                                 </div>
-                                {#if review.media_name.length > 7}
-                                    <p class="text-center text-xl mb-2" style="font-size: {corr.calculate_title_font_size(review.media_name, 7, 20)}">{review.media_name}</p>
-                                {:else}
-                                    <p class="text-center text-xl mb-2">{review.media_name}</p>
-                                {/if}
+                                
+                                <p class="text-center text-xl mb-2" style="font-size: {corr.calculate_title_font_size(review.media_name, 7, 20)}">{review.media_name}</p>
                             </div>
                         </a>
                     {/each}

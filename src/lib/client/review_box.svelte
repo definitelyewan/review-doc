@@ -53,7 +53,9 @@
         </div>
         <ul class="list-disc ml-0 mt-2 md:mt-0">
             {#each review.review_bullets as bullet}
-                <li class="ml-4">{bullet}</li>
+                {#if bullet.length > 0}
+                    <li class="ml-4">{bullet}</li>
+                {/if}
             {/each}
         </ul>
     </div>
