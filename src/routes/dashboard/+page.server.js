@@ -117,8 +117,46 @@ export const actions = {
         review_json.push(bullet);
     }
 
+    // update tv show cover and dates just in case new seasons come out
+    try {
+      const media = await db.query(`SELECT media_name, media_type, media_release_date_range_end FROM media WHERE media_id = ${media_id}`);
+      
+      
+      const media_name = media[0].media_name;
+      const tmdb_init = await tmdb.query('GET', `search/multi?query=${media_name}&include_adult=true&language=en-US&page=1`);
+      const old_last_air_date = media[0].media_release_date_range_end;
+      const media_type = media[0].media_type;
+
+      //only check further for tv shows cuz these things have variable dates if their not over
+      if (media_type !== 'tv') {
+        return;
+      }
+
+      for (let tmdb_result of tmdb_init.results) {
+
+        if (tmdb_result.media_type !== 'tv' && media_name !== tmdb_result.nam) {
+          continue;
+        }
+
+        const details = await tmdb.query('GET', `${tmdb_result.media_type}/${tmdb_result.id}`);
+
+        // continue checking until the date is different
+        if (details.last_air_date === old_last_air_date) {
+          continue;
+        }
+
+        const cover_url = `https://image.tmdb.org/t/p/original${tmdb_result.poster_path}`;
+        const new_last_air_date = details.last_air_date;
+        await security.download_image(cover_url, media_id, 'cover');
+        await db.query(`UPDATE media SET media_release_date_range_end = '${new_last_air_date}' WHERE media_id = ${media_id}`);
+        
+      }
+    } catch (error) {
+      return { success: false, message: 'Failed to download a new cover image or update the end date. Try again later tmdb may be down :(' };
+    }
     await db.query(`INSERT INTO review(media_id, review_sub_name, review_bullets, review_score, review_platform, user_id) 
-                    VALUES(${media_id}, ${review_sub_name ? `'${db.sanitize_input(review_sub_name)}'` : 'NULL'}, '${db.sanitize_input(JSON.stringify(review_json))}', '${review_score}',  ${review_platform ? `'${db.sanitize_input(review_platform)}'` : 'NULL'}, ${locals.user.id})`);
+      VALUES(${media_id}, ${review_sub_name ? `'${db.sanitize_input(review_sub_name)}'` : 'NULL'}, '${db.sanitize_input(JSON.stringify(review_json))}', '${review_score}',  ${review_platform ? `'${db.sanitize_input(review_platform)}'` : 'NULL'}, ${locals.user.id})`);
+
     return { success: true };
   },
   all_types: async () => {

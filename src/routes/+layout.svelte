@@ -12,7 +12,6 @@
 
 </script>
 <meta property="og:title" content="Review Doc"/>
-
 <!-- App Shell -->
 <AppShell>
     <svelte:fragment slot="header">

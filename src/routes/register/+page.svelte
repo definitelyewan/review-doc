@@ -4,7 +4,7 @@
 
 </script>
   
-
+<title>Review Doc - Register</title>
   
 <div class="flex justify-center items-center p-2">
     <div class="card p-6 shadow-lg rounded-lg w-full max-w-md">

@@ -76,6 +76,7 @@
 
 </script>
 
+<title>Review Doc - Media</title>
 
 <div class="mr-2 ml-2">
     <input

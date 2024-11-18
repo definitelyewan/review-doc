@@ -82,8 +82,6 @@
             media_type = edit_values.media_type;
         }
 
-
-        //update_review_fields(edit_values, value);
     }
 
     $: if (form?.search) {
@@ -105,6 +103,8 @@
 
 
 </script>
+
+<title>Review Doc - Dashboard</title>
 
 <div class="mt-2 mb-2 mr-2 ml-2">
     <RadioGroup display="flex" class="items-center justify-center">

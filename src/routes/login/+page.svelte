@@ -3,7 +3,8 @@
     export let form;
 
 </script>
-  
+
+<title>Review Doc - Login</title>
 
   
 <div class="flex justify-center items-center p-2">

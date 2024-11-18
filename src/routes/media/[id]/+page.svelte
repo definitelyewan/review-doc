@@ -116,6 +116,9 @@
 
 </script>
 
+<title>Review Doc - {media_name}</title>
+<meta property="og:image" content="/api/media/image/{media_id}/cover" />
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-2 mr-2 ml-2 mb-2">
     <!-- First Card -->
     <div class="relative card p-2 shadow-lg rounded-lg flex items-center col-span-1 lg:col-span-2" style="min-width: 300px;">

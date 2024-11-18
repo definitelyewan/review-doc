@@ -2,6 +2,8 @@
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 </script>
 
+<title>Review Doc - Scale</title>
+
 <div class="mt-2 mr-2 ml-2 mb-2">
     <div class="flex flex-col items-center">
         <ProgressRadial meter="stroke-purple-500" track="stroke-purple-500/30" strokeLinecap="round" value=100>10 / 10</ProgressRadial>

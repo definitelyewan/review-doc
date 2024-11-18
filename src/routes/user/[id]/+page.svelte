@@ -28,6 +28,7 @@
 
 </script>
 
+<title>Review Doc - {user.user_name}</title>
 
 <div class="flex flex-col items-center justify-center mt-2">
     <Avatar width="w-20" initials={user.user_name} background="bg-primary-500"/>

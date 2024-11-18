@@ -9,6 +9,8 @@
     const best_of_awards = data.best_of[0];
 </script>
 
+<title>Review Doc - Awards</title>
+
 <div class="mt-2 mb-2">
     <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0">
         <p class="text-4xl"><b>All Awards</b></p>
