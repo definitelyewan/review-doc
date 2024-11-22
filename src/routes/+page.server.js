@@ -2,8 +2,8 @@ import db from '$lib/server/db.js';
 import igdb from '$lib/server/igdb.js';
 
 export const load = async (loadEvent) => {
-    const { fetch } = loadEvent;
-
+    
+    // get newest reviews
     let newest_reviews = await db.query(`SELECT review_id, media_id, user_id, review_score, review_sub_name FROM review ORDER BY review_date DESC LIMIT 20`);
 
     newest_reviews = await Promise.all(newest_reviews.map(async review => {
@@ -29,11 +29,16 @@ export const load = async (loadEvent) => {
 
     const score_counts = await db.query(`SELECT CAST(review_score AS INT) as review_score, COUNT(review_score) as count FROM review GROUP BY CAST(review_score AS INT) ORDER BY review_score ASC`);
 
-
+    // get all users
     const users = await db.query(`SELECT user_id, user_name FROM user WHERE user_id > 1`);
 
-
-    return {newest_reviews, most_acclaimed, score_counts, users};
+    //get 5 random reviews
+    const random_reviews = await db.query(`
+        SELECT review.media_id, review.review_score, review.review_sub_name, review.review_bullets, review.review_platform, review.user_id, review.review_date, review.review_id, media.media_name, media.media_type, user.user_name  
+        FROM review INNER JOIN media 
+        ON review.media_id = media.media_id INNER JOIN user ON review.user_id = user.user_id 
+        ORDER BY RAND() LIMIT 4`);
+    return {newest_reviews, most_acclaimed, score_counts, users, random_reviews};
 }
 
 export const actions = {

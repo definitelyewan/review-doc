@@ -1,7 +1,8 @@
 <script>
     import ReviewRadial from '$lib/client/review_radial.svelte';
+    import CompactBox from '$lib/client/compact_box.svelte';
     import { Avatar } from '@skeletonlabs/skeleton';
-    import { TabGroup, Tab, TabAnchor } from '@skeletonlabs/skeleton';
+    import { TabGroup, Tab} from '@skeletonlabs/skeleton';
     import corr from '$lib/client/corrections.js';
     export let data;
 
@@ -12,6 +13,7 @@
     const most_acclaimed = data.most_acclaimed;
     const score_counts = data.score_counts;
     const users = data.users;
+    const random_reviews = data.random_reviews;
 
     function multiColumnLeft(elem) {
         let x = elem.scrollWidth;
@@ -103,6 +105,36 @@
     <hr class="hr border-t-8" />
 </div>
 
+<div class="mt-2 mb-2">
+    <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0">
+        <p class="text-2xl"><b>Random Reviews</b></p>
+    </div>
+</div>
+
+<!-- random review -->
+<div class="flex flex-wrap -mx-2 mr-2 ml-2">
+    {#each random_reviews as review}
+        <div class="w-full md:w-1/2 p-2">
+            <a href="media/{review.media_id}?review={review.review_id}">
+                <CompactBox
+                    media_name="{review.media_name}" 
+                    review_bullets="{review.review_bullets}" 
+                    review_sub_name="{review.review_sub_name}"
+                    review_score="{review.review_score}"
+                    user_name="{review.user_name}"
+                    media_id="{review.media_id}"
+                    media_type="{review.media_type}"
+                    review_date="{review.review_date}"
+                />
+            </a>
+        </div>
+    {/each}
+</div>
+
+<div class="mt-4 mr-2 ml-2 space-y-4">
+    <hr class="hr border-t-8" />
+</div>
+
 <!-- highest reviewed works/dist -->
 <div class="mt-2 mb-2">
     <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0">
@@ -145,7 +177,7 @@
     </div>
 </div>
 
-
+<!-- most acclaimed section -->
 <TabGroup justify="justify-center">
     <Tab bind:group={tabSet} name="tab1" value={0}>
         <svelte:fragment slot="lead">Most Acclaimed</svelte:fragment>

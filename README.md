@@ -1,3 +1,11 @@
+# setting up
+- make sure apache/nginx is running
+- make a rule for the directory
+- make a rule for the staging forlder in systemd
+- chmod +x on index.js
+- copy node shabang onto index.js
+- profit
+
 # create-svelte
 
 Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
