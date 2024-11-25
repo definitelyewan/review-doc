@@ -49,7 +49,8 @@ export const load = async (loadEvent) => {
                 review_id: review.review_id,
                 review_sub_name: usable_sub_name,
                 review_bullets: review.review_bullets,
-                review_score: review.review_score
+                review_score: review.review_score,
+                review_date: review.review_date
             }
         });
 
