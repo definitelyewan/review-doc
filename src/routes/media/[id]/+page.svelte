@@ -412,7 +412,6 @@
 									{:else if form?.success === false}
 										<p class="text-center text-error-500">Award failed to update! because {form.message}</p>
 									{/if}
-									{JSON.stringify(user_awards)}
 								</div>
 							</div>
 						</svelte:fragment>
