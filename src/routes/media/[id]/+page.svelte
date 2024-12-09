@@ -1,8 +1,17 @@
 <script>
 	export let data;
+	export let form;
 	import { page } from '$app/stores';
 	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
 	import { TabGroup, Tab} from '@skeletonlabs/skeleton';
+	import { TreeView, TreeViewItem} from '@skeletonlabs/skeleton';
+	import { Avatar } from '@skeletonlabs/skeleton';
+	import { enhance } from '$app/forms';
+    import { Autocomplete } from '@skeletonlabs/skeleton';
+    import { popup } from '@skeletonlabs/skeleton';
+    import { storePopup } from '@skeletonlabs/skeleton';
+    import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
+
 	import ReviewRadial from '$lib/client/review_radial.svelte';
 	import ReviewBox from '$lib/client/review_box.svelte';
 
@@ -114,10 +123,306 @@
 		data.media_data.distributors
 	);
 
+
+	// user panel section
+	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
+    let popup_settings = {
+        event: 'focus-click',
+        target: 'popupAutocomplete',
+        placement: 'bottom',
+    };
+
+	let search_val = '';
+
+	/**
+	 * reviews
+	 */
+
+	let review_radio = 0;
+	let review_id = null;
+	let review_score = 0;
+	let review_bullets = '';
+	let review_sub_name = '';
+	let review_platform = '';
+	const user_reviews = data.user_reviews;
+
+
+	function init_review_values() {
+
+		search_val = '';
+
+		review_radio = 0;
+		review_score = 0;
+		review_id = null;
+		review_bullets = '';
+		review_sub_name = '';
+		review_platform = '';
+	}
+
+	function modify_on_popup_select(event){
+		search_val = event.detail.label;
+
+		let edit_values = event.detail.value;
+
+		review_id = edit_values.review_id;
+		review_score = parseInt(edit_values.review_score);
+		review_bullets = edit_values.review_bullets.join('\n');
+		review_sub_name = edit_values.review_sub_name;
+		review_platform = edit_values.review_platform;
+
+	}
+
+
+	$: modify_filtered_options = user_reviews
+        .filter(option => option.label.toLowerCase().includes(search_val.toLowerCase()))
+        .slice(0, 10);
+
+
+	/**
+	 * awards
+	 */
+
+	let award_radio = 0;
+	let award_name = '';
+	let award_id = null;
+	const user_awards = data.user_awards;
+
+
+
 </script>
 
 <title>Review Doc - {media_name}</title>
 <meta property="og:image" content="/api/media/image/{media_id}/cover" />
+
+{#if $page.data.user}
+	<div class="mt-2 ml-2 mr-2 card relative max-w-full">
+		<TreeView indent="" width="w-full">
+			<TreeViewItem>
+				User Panel
+				<svelte:fragment slot="children">
+					<TreeViewItem>
+						Review
+						<svelte:fragment slot="children">
+							<div class="relative w-full p-2">
+								<div class="justify-center">
+									<RadioGroup display="flex">
+										<RadioItem bind:group={review_radio} on:click={() => {init_review_values()}} name="justify" value={0}>Review</RadioItem>
+										<RadioItem bind:group={review_radio} on:click={() => {init_review_values()}} name="justify" value={1}>Modify</RadioItem>
+									</RadioGroup>
+
+									{#if review_radio === 1}
+										<div class="relative w-full">
+											<input
+												class="input autocomplete mt-2 z-1 w-full"
+												type="search"
+												name="autocomplete-search"
+												bind:value={search_val}
+												placeholder="Search..."
+												use:popup={popup_settings}
+											/>
+											<div data-popup="popupAutocomplete" class="absolute top-0 left-0 right-0 z-50 rounded-lg p-4 shadow-lg bg-surface-700 w-full">
+												<Autocomplete
+													bind:input={search_val}
+													options={modify_filtered_options}
+													on:selection={modify_on_popup_select}
+												/>
+											</div>
+										</div>
+									{/if}
+
+
+									<div class="flex flex-wrap items-center justify-center mt-2">
+										{#each {length : 11} as _, i}
+											<button type="button" on:click={() => review_score = i} class="p-1">
+												<Avatar
+													border="border-4 {review_score === i ? 'border-primary-500' : 'border-surface-300-600-token hover:!border-primary-500'}"
+													initials={i === 0 ? "💀" : i.toString()}
+													cursor="cursor-pointer"
+													width="w-12"/>
+											</button>
+										{/each}
+									</div>
+									<p class="text-2xl p-2">Review Bullets</p>
+									<div class="items-center justify-center p-2">
+										<textarea
+											class="input w-full rounded-sm p-1"
+											rows="8"
+											bind:value={review_bullets}
+											on:input={(e) => review_bullets = e.target.value}
+											placeholder="review content..."
+										></textarea>
+										<p class="text-sm"><i>Each new line(use of the enter key) will be treated as a bullet point.</i></p>
+									</div>
+									<p class="text-2xl p-2">Version or Season</p>
+									<div class="items-center justify-center p-2">
+										<textarea
+											class="input w-full rounded-sm p-1"
+											rows="1"
+											bind:value={review_sub_name}
+											on:input={(e) => review_sub_name = e.target.value}
+											placeholder="What version/season is this for?"
+										></textarea>
+										<p class="text-sm"><i>Tv shows must match the following format to be cataloged correctly. If a review is for season 1 only enter the number 1 in this box, if it is for multiple seasons like season 1 through 3 please enter it like so "1 2 3" with a space between each number. Otherwise, anything can be put here like "Remastered" for a game or or "2005 DVD" for a movie.</i></p>
+									</div>
+									<p class="text-2xl p-2">Platform</p>
+									<div class="items-center justify-center p-2">
+										<textarea
+											class="input w-full rounded-sm p-1"
+											rows="1"
+											bind:value={review_platform}
+											on:input={(e) => review_platform = e.target.value}
+											placeholder="Where did you watch/play this?"
+										></textarea>
+										<p class="text-sm"><i>Where you watched or played this media. For example, "Steam" could be could be where you played Bioshock or Disney+ could be where you watched Andor</i></p>
+									</div>
+								</div>
+
+
+								{#if review_radio === 0}
+									<div class="items-center justify-center">
+										<form class="review" action="?/add_review" method="POST" use:enhance >
+											<input type="hidden" name="review_score" value={review_score} />
+											<input type="hidden" name="review_bullets" value={review_bullets} />
+											<input type="hidden" name="media_id" value={media_id} />
+											<input type="hidden" name="review_sub_name" value={review_sub_name} />
+											<input type="hidden" name="review_platform" value={review_platform} />
+											<input type="hidden" name="type" value={"review"} />
+											<button class="p-2 mt-2 mb-2 w-full bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-xl">
+												<span class="text-md p-2">Review</span>
+											</button>
+										</form>
+									</div>
+									{#if form?.success === true}
+										<p class="text-center text-success-500">Review has been added!</p>
+									{:else if form?.success === false}
+										<p class="text-center text-error-500">Review failed! because {form.message}</p>
+							
+									{/if}
+								{:else if review_radio === 1 && search_val != ''}
+									<div class="items-center justify-center ">
+										<form action="?/update_review" method="POST" use:enhance on:submit|preventDefault >
+											<input type="hidden" name="review_score" value={review_score} />
+											<input type="hidden" name="review_bullets" value={review_bullets} />
+											<input type="hidden" name="review_id" value={review_id} />
+											<input type="hidden" name="review_sub_name" value={review_sub_name} />
+											<input type="hidden" name="review_platform" value={review_platform} />
+											<button class="p-2 mt-2 mb-2 w-full bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-xl">
+												<span class="text-md p-2">Update Review</span>
+											</button>
+										</form>
+										<form class="delete_review" action="?/delete_review" method="POST" use:enhance on:submit|preventDefault>
+											<input type="hidden" name="review_id" value={review_id} />
+											<button class="p-2 mt-2 mb-2 w-full bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-xl">
+												<span class="text-md p-2">Delete Review</span>
+											</button>
+										</form>
+										{#if form?.success === true}
+											<p class="text-center text-success-500">Review has been updated!</p>
+										{:else if form?.success === false}
+											<p class="text-center text-error-500">Review failed to update! because {form.message}</p>
+								
+										{/if}
+									</div>
+								{/if}
+							</div>
+						</svelte:fragment>
+					</TreeViewItem>
+					<TreeViewItem>
+						Award
+						<svelte:fragment slot="children">
+							<div class="relative w-full p-2">
+								<div class="justify-center">
+									<RadioGroup display="flex">
+										<RadioItem bind:group={award_radio} on:click={() => {}} name="justify" value={0}>Nominate</RadioItem>
+										<RadioItem bind:group={award_radio} on:click={() => {}} name="justify" value={1}>Award</RadioItem>
+									</RadioGroup>
+									
+								
+									{#if award_radio === 0}
+										<div class="flex flex-wrap items-center justify-center mt-2 mb-2 mr-2 ml-2">
+											{#if media_type === 'game'}
+												<button type="button" on:click={() => award_name = 'Game of the Year'} class="p-1">
+													<span class="badge variant-filled p-2">Game of the Year</span>
+												</button>
+											{/if}
+											{#if media_type === 'movie'}
+												<button type="button" on:click={() => award_name = 'Movie of the Year'} class="p-1">
+													<span class="badge variant-filled p-2">Movie of the Year</span>
+												</button>
+											{/if}
+											{#if media_type === 'tv'}
+												<button type="button" on:click={() => award_name = 'Show of the Year'} class="p-1">
+													<span class="badge variant-filled p-2">Show of the Year</span>
+												</button>
+											{/if}
+								
+											<button type="button" on:click={() => award_name = 'Story of the Year'} class="p-1">
+												<span class="badge variant-filled p-2">Story of the Year</span>
+											</button>
+											<button type="button" on:click={() => award_name = 'Cinematography of the Year'} class="p-1">
+												<span class="badge variant-filled p-2">Cinematography of the Year</span>
+											</button>
+											<button type="button" on:click={() => award_name = 'Best Animation of the Year'} class="p-1">
+												<span class="badge variant-filled p-2">Best Animation of the Year</span>
+											</button>
+											<button type="button" on:click={() => award_name = 'Best of the Year'} class="p-1">
+												<span class="badge variant-filled p-2">Best of the Year</span>
+											</button>
+										</div>
+
+										<p class="text-sm p-2"><i>Select a single award to nominate then click the nominate button. If it is already nominated it will be removed from the nominations on submit. The current nomination is for <span class="text-success-200 "><b>{award_name}</b></span></i></p>
+										<div class="p-2">
+
+											{#if user_awards.length === 0}
+												<p>{media_name} has not been nominated for any awards yet, maybe it will one day</p>
+											{:else}
+												<p>{media_name} is currently nominated for the below awards:</p>
+												<ul class="list-disc ml-0 mt-2 md:mt-0">
+													{#each user_awards as award}
+														<li class="ml-4">{award.label}</li>
+													{/each}
+												</ul>
+											{/if}
+										</div>
+										<div class="items-center justify-center ">
+											<form action="?/nominate_media" method="POST" use:enhance on:submit|preventDefault class="flex justify-center items-center">
+												<input type="hidden" name="award_name" value={award_name} />
+												<input type="hidden" name="media_id" value={media_id} />
+												<button class="p-2 mt-2 mb-2 w-full bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-xl">Nominate</button>
+											</form>
+										</div>
+
+									
+									{:else if award_radio === 1}
+										<p class="p-2">Click the below nominations to toggle its award status. A nomination will become an Award if nominated an award will become a nomination.</p>
+										<div class="flex flex-wrap items-center justify-center mt-2 mb-2 mr-2 ml-2">
+											{#each user_awards as award}
+												<form action="?/grant_award" method="POST" use:enhance on:submit|preventDefault class="flex justify-center items-center">
+													<input type="hidden" name="award_id" value={award.value.award_id} />
+													<button class="p-2 mt-2 mb-2 w-full bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-xl">{award.label}</button>
+												</form>
+											{/each}
+										</div>
+
+									
+									{/if}
+
+									{#if form?.success === true}
+										<p class="text-center text-success-500">Award Success!</p>
+									{:else if form?.success === false}
+										<p class="text-center text-error-500">Award failed to update! because {form.message}</p>
+									{/if}
+									{JSON.stringify(user_awards)}
+								</div>
+							</div>
+						</svelte:fragment>
+					</TreeViewItem>
+				</svelte:fragment>
+			</TreeViewItem>
+		</TreeView>
+	</div>
+{/if}
+
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-2 mr-2 ml-2 mb-2">
     <!-- First Card -->
