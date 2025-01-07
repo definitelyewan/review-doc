@@ -45,7 +45,7 @@
 />
 
 <ul class="mt-2">
-    <div class="flex flex-col items-center justify-center">
+    <div class="flex flex-wrap -mx-2 mr-2 ml-2">
         {#each paginated_source as row}
             <div class="w-full md:w-1/2 p-2">
                 <a href="../../media/{row.value.media_id}" class="w-full">

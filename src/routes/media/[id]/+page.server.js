@@ -1,7 +1,5 @@
 
 import db from '$lib/server/db.js';
-import igdb from '$lib/server/igdb.js';
-import { redirect } from '@sveltejs/kit';
 import security from '$lib/server/security';
 import tmdb from '$lib/server/tmdb';
 
