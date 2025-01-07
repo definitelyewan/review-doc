@@ -40,19 +40,16 @@
                             <li>
                                 <a href="/scale" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0" >Scale</a>
                             </li>
-                            <li>
-                                {#if $page.data.user}
-                                    <button class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0 z-50" on:click={() => window.location.href = `/dashboard`}>
-                                        Dashboard
-                                    </button>
-                                {/if}
-                            </li>
                         </ul>
                     </div>
                 </div>
                 {#if $page.data.user}
                     <button type="button" on:click={() => window.location.href = `/user/${$page.data.user.id}`}>
                         <Avatar width="w-8" initials={$page.data.user.name} background="bg-primary-500" />
+                    </button>
+                {:else}
+                    <button type="button" on:click={() => window.location.href = `/login`}>
+                        <Avatar width="w-8" initials="?" background="bg-slate-600" />
                     </button>
                 {/if}
             </svelte:fragment>
