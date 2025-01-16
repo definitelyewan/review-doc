@@ -1,10 +1,20 @@
+/**
+ * A module for interacting with the TMDB api
+ */
+
 import dotenv from 'dotenv';
 
+// connects to a instance of mariadb using a .env file in the project directory
 dotenv.config();
 
 const access_token = process.env.REVIEWER_PLUS_TMDB_READ_ACCESS_TOKEN;
 
-
+/**
+ * Querys a given TMDB endpoint with a given query
+ * @param {String} method 
+ * @param {String} query 
+ * @returns JSON
+ */
 async function query(method, query) {
 
 

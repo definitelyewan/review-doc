@@ -1,3 +1,6 @@
+/**
+ * A module for providing basic security checks
+ */
 
 import db from '$lib/server/db.js';
 import dotenv from 'dotenv';
@@ -6,6 +9,7 @@ import https from 'https';
 import path from 'path';
 import fs from 'fs';
 
+// connects to a instance of mariadb using a .env file in the project directory
 dotenv.config();
 
 /**
@@ -55,7 +59,12 @@ function validate_date(date) {
     return date.match(/^\d{4}-\d{2}-\d{2}$/);
 }
 
-
+/**
+ * Checks a user's priviledge level based off ID
+ * @param {string} user_id 
+ * @param {string} privilege 
+ * @returns 
+ */
 async function validate_user_privilege(user_id, privilege) {
     try {
         const user = await db.query(`SELECT * FROM user WHERE user_id = ${user_id} LIMIT 1`);
@@ -102,6 +111,12 @@ function validate_url(url) {
     });
 }
 
+/**
+ * Downloads an image from a given URL and saves it to the user's specified image directory
+ * @param {String} url 
+ * @param {String} media_id 
+ * @param {String} type 
+ */
 async function download_image(url, media_id, type) {
     let file_name = String(Date.now());
     let img_path = path.join(process.env.REVIEWER_PLUS_IMG_DIR, file_name);

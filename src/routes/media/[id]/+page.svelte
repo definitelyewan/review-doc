@@ -1,3 +1,4 @@
+<!-- Frontend code for media/[id] to work-->
 <script>
 	export let data;
 	export let form;

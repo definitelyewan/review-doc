@@ -5,18 +5,19 @@ import security from '$lib/server/security';
 import db from '$lib/server/db.js';
 
 /**
- * 
- * @param {*} param 
- * @returns 
+ * Provides a post endpoint to the instance owner to backup the database. The database will be backed up in a
+ * JSON formate and stored in the backup directory.
  */
 export async function POST ({ request }) {
     
+    // validate the user
     const valid = await security.validate_master_api_key(request.headers.get('Authorization'));
 
     if (!valid) {
         return json({ message: "Unauthorized" }, { status: 400 });
     }
 
+    // attempt backup
     try {
 
         let backup = new Object({user: [], medias: []})

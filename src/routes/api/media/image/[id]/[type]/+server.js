@@ -7,7 +7,9 @@ import http from 'http';
 import https from 'https';
 import mime from 'mime';
 
-
+/**
+ * Provides a get endpoint to download an image based off a media id
+ */
 export async function GET({ request, params }) {
     /**
      * No API key needed
@@ -46,9 +48,13 @@ export async function GET({ request, params }) {
     }
 }
 
-
+/**
+ * Provides a patch endpoint to upload an image based off a media id. useful for updating media ids that
+ * dont have images and 100% should.
+ */
 export async function PATCH({ request, params }) {
 
+    // validate user
     const auth = request.headers.get('Authorization');
     const valid = await security.validate_api_key(auth);
 
@@ -56,6 +62,7 @@ export async function PATCH({ request, params }) {
         return json({ message: "Unauthorized" }, { status: 400 });
     }
 
+    // attempt to update the image
     try {
 
         const media_id = parseInt(params.id);
@@ -70,6 +77,7 @@ export async function PATCH({ request, params }) {
             throw new Error('Invalid Parameters');
         }
 
+        // feature should only be available to admins or users who added the media
         const media = await db.query(`SELECT * FROM media WHERE media_id = ${media_id} LIMIT 1`);
         let user_privilege = "viewer";
 
@@ -96,7 +104,8 @@ export async function PATCH({ request, params }) {
         }
 
         const protocol = body_content[0].startsWith('https') ? https : http;
-
+        
+        // write image to disk
         protocol.get(body_content[0], (response) => {
             if (response.statusCode !== 200) {
                 console.error(`Failed to get '${body_content[0]}' (${response.statusCode})`);

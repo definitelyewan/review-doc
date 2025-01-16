@@ -3,9 +3,12 @@ import security from '$lib/server/security';
 import db from '$lib/server/db';
 
 
-
+/**
+ * Provides a get endpoint to users to search for media by id
+ */
 export async function GET({ request, params }) {
 
+    // validate user
     const auth = request.headers.get('Authorization');
     const valid = await security.validate_api_key(auth);
 
@@ -13,6 +16,7 @@ export async function GET({ request, params }) {
         return json({ message: "Unauthorized" }, { status: 400 });
     }
 
+    // attempt to get the media
     try {
 
         const media_id = parseInt(params.id);

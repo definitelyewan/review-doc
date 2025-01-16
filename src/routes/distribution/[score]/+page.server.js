@@ -1,8 +1,18 @@
+/**
+ * Backend code for the distribution page
+ */
+
 import db from '$lib/server/db.js';
 
+/**
+ * On page load supply the front end with media information that has a weighted average score equal to the score provided in the url
+ * @param {*} param0 
+ * @returns 
+ */
 export const load = async ({ params }) => {
     const { score } = params;
 
+    // im so sorry this is speghetti code
     const media = await db.query(`
         SELECT 
             media.media_name, media.media_id, media_release_date_range_start, media_release_date_range_end, media.media_type, review.user_id,

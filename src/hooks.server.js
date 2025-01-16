@@ -10,6 +10,7 @@ export async function handle ({ event, resolve }) {
         return await resolve(event);
     }
 
+    // if a cookie exists give envery page this info
     const users = await db.query(`SELECT user_id, user_name, user_type, user_profile_path FROM user WHERE user_token = '${session}' LIMIT 1`);
 
     if (users.length > 0) {

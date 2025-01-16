@@ -3,8 +3,6 @@ import security from '$lib/server/security';
 
 /**
  * Test the server to see if its running
- * @param {*} param 
- * @returns 
  */
 export async function GET ({ request }) {
     

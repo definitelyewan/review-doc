@@ -2,16 +2,19 @@ import { json } from '@sveltejs/kit';
 import security from '$lib/server/security';
 import db from '$lib/server/db';
 
-
+/**
+ * Provides a get endpoint to get the latest n reviews
+ */
 export async function GET({ request, params }) {
 
+    // validate user
     const valid = await security.validate_api_key(request.headers.get('Authorization'));
 
     if (!valid) {
         return json({ message: "Unauthorized" }, { status: 400 });
     }
 
-
+    // attempt to get n reviews
     try {
 
         const total = Math.abs(parseInt(params.number));

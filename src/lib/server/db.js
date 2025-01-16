@@ -1,6 +1,11 @@
+/**
+ * A module for interacting with a mariadb database
+ */
+
 import mariadb from 'mariadb';
 import dotenv from 'dotenv';
 
+// connects to a instance of mariadb using a .env file in the project directory
 dotenv.config();
 
 const pool = mariadb.createPool({

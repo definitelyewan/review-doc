@@ -1,3 +1,4 @@
+<!-- Frontend view for the award/[year] url -->
 <script>
     import { page } from '$app/stores';
     import { onMount } from 'svelte';

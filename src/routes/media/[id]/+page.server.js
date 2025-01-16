@@ -1,11 +1,17 @@
+/**
+ * Backend for the media page of a specific piece media
+ */
 
 import db from '$lib/server/db.js';
 import security from '$lib/server/security';
 import tmdb from '$lib/server/tmdb';
 
-
+/**
+ * On page load fetch any and all media information along with reviews and awards
+ */
 export const load = async({params, locals}) => {
     
+    // big boy variable to hold all the data
     let media_data = new Object({media: {}, reviews: [], awards: [], studios: [], distributors: [], directors: [], tags: [], users : []});
 
     let unique_seasons = [];
@@ -13,6 +19,8 @@ export const load = async({params, locals}) => {
     const media = await db.query(`SELECT * FROM media WHERE media_id = ${params.id}`);
     const reviews = await db.query(`SELECT * FROM review WHERE media_id = ${params.id}`);
     const awards = await db.query(`SELECT * FROM award WHERE media_id = ${params.id} AND award_status = 'winner'`)
+
+    // sanitize the data
 
     media[0].media_release_date_range_start = media[0].media_release_date_range_start.toISOString().split('T')[0];
 
@@ -48,6 +56,8 @@ export const load = async({params, locals}) => {
         //idk replace the array that already exists
         media_data.reviews = reviews_by_seasons;
     }
+
+    // get and sanitize all the other data
 
     const studios = await db.query(`SELECT studio_name from studio INNER JOIN studio_of WHERE studio.studio_id = studio_of.studio_id AND studio_of.media_id = ${params.id}`);
     const distributors = await db.query(`SELECT distributor_name from distributor INNER JOIN distributor_of WHERE distributor.distributor_id = distributor_of.distributor_id AND distributor_of.media_id = ${params.id}`);
@@ -97,12 +107,14 @@ export const load = async({params, locals}) => {
         };  
     }
 
+    // attempt to get the users reviews and awards
     try {
         
         const current_year = new Date().getFullYear();
         const user_reviews_unflitered = await db.query(`SELECT * FROM review WHERE media_id = ${params.id} AND user_id = ${locals.user.id}`);
         const user_awards_unfiltered = await db.query(`SELECT * FROM award WHERE media_id = ${params.id} AND user_id = ${locals.user.id} AND award_issue_year = ${current_year}`);
         
+        // filter reviews
         user_reviews_unflitered.forEach(review => {
             review.review_date = review.review_date.toISOString().split('T')[0];
             
@@ -119,6 +131,7 @@ export const load = async({params, locals}) => {
             });
         });
 
+        // filter awards
         user_awards_unfiltered.forEach(award => {
             
             user_awards.push({
@@ -149,9 +162,17 @@ export const load = async({params, locals}) => {
 
 }
 
+/**
+ * Form actions
+ */
 export const actions = {
+    
+    /**
+     * Adds a review to the database
+     */
     add_review: async ({request, locals}) => {
 
+        //load front end data and filter it
         const form_data = await request.formData();
         const review_score = form_data.get('review_score');
         const review_bullets = form_data.get('review_bullets');
@@ -163,7 +184,6 @@ export const actions = {
           return { success: false, message: 'Review is empty' };
     
         }
-
 
         review_sub_name = review_sub_name.length === 0 ? null : review_sub_name;
         review_platform = review_platform.length === 0 ? null : review_platform;
@@ -219,6 +239,10 @@ export const actions = {
     
         return { success: true };
     },
+
+    /**
+     * Removes a review from the database at a users request
+     */
     delete_review: async ({request}) => {
         const form_data = await request.formData();
         const review_id = form_data.get('review_id');
@@ -231,38 +255,48 @@ export const actions = {
         await db.query(`DELETE FROM review WHERE review_id = ${review_id}`);
         return { success: true };
     },
+
+    /**
+     * Updates a review in the database with new information
+     */
     update_review: async ({request}) => {
       
-      const form_data = await request.formData();
-      const review_score = form_data.get('review_score');
-      const review_bullets = form_data.get('review_bullets');
-      const review_id = form_data.get('review_id');
-      let review_sub_name = form_data.get('review_sub_name');
-      let review_platform = form_data.get('review_platform');
+        // get front end data and filter it
+
+        const form_data = await request.formData();
+        const review_score = form_data.get('review_score');
+        const review_bullets = form_data.get('review_bullets');
+        const review_id = form_data.get('review_id');
+        let review_sub_name = form_data.get('review_sub_name');
+        let review_platform = form_data.get('review_platform');
       
   
-      if (review_bullets.length === 0) {
-        return { success: false, message: 'Review is empty' };
-  
-      }
+        if (review_bullets.length === 0) {
+            return { success: false, message: 'Review is empty' };
+        }
     
-      if (review_id === null) {
-        return { success: false, message: 'Permission denied! please refresh the page and try again.' };
-     }
+        if (review_id === null) {
+            return { success: false, message: 'Permission denied! please refresh the page and try again.' };
+        }
   
-      review_sub_name = review_sub_name.length === 0 ? null : review_sub_name;
-      review_platform = review_platform.length === 0 ? null : review_platform;
-      
-      let review_json = [];
-      
-      for (let bullet of review_bullets.split('\n')) {
-        review_json.push(bullet);
-      }
-      
-      await db.query(`UPDATE review SET review_score = ${review_score}, review_bullets = '${db.sanitize_input(JSON.stringify(review_json))}', review_sub_name = ${review_sub_name ? `'${db.sanitize_input(review_sub_name)}'` : 'NULL'}, review_platform = ${review_platform ? `'${db.sanitize_input(review_platform)}'` : 'NULL'} 
-                      WHERE review_id = ${review_id}`);
-      return { success: true };
+        review_sub_name = review_sub_name.length === 0 ? null : review_sub_name;
+        review_platform = review_platform.length === 0 ? null : review_platform;
+        
+        let review_json = [];
+        
+        for (let bullet of review_bullets.split('\n')) {
+            review_json.push(bullet);
+        }
+        
+        // update the review table
+        await db.query(`UPDATE review SET review_score = ${review_score}, review_bullets = '${db.sanitize_input(JSON.stringify(review_json))}', review_sub_name = ${review_sub_name ? `'${db.sanitize_input(review_sub_name)}'` : 'NULL'}, review_platform = ${review_platform ? `'${db.sanitize_input(review_platform)}'` : 'NULL'} 
+                        WHERE review_id = ${review_id}`);
+        return { success: true };
     },
+
+    /**
+     * Nominate a media for an award
+     */
     nominate_media: async ({request, locals}) => {
         const form_data = await request.formData();
         const award_name = form_data.get('award_name');
@@ -277,6 +311,7 @@ export const actions = {
             return {success: false, message: 'No media selected'};
         }
 
+        // block user from nominating a media they did not review this year
         try {
 
             const did_user_review = await db.query(`SELECT * FROM review WHERE user_id = ${locals.user.id} AND media_id = ${media_id} AND review_date BETWEEN '${year}-01-01' AND '${year}-12-31'`);
@@ -289,7 +324,7 @@ export const actions = {
             return {success: false, message: error.message};
         }
       
-        // check if user already nominated this
+        // check if user already nominated this and if so un nominate it
 
         try {
             const already_nominated = await db.query(`SELECT * FROM award WHERE media_id = ${media_id} AND user_id = ${locals.user.id} AND award_issue_year = ${year} AND award_name = '${award_name}'`);
@@ -306,8 +341,13 @@ export const actions = {
 
         return {success: true};
     },
+
+    /**
+     * Grants an awafrd to media that a user has nominated
+     */
     grant_award: async ({request, locals}) => {
         
+        // filter and get front end data
         const form_data = await request.formData();
         const media_id = form_data.get('award_id');
         const current_month = new Date().getMonth() + 1;
@@ -316,10 +356,12 @@ export const actions = {
             return {success: false, message: 'No award picked'};
         }
 
+        // check if its december if not return
         if (current_month < 12) {
             return {success: false, message: 'You can only grant awards in December'};
         }
 
+        //attempt to grant the award
         try {
             let nom = '';
             const award = await db.query(`SELECT * FROM award WHERE award_id = ${media_id}`);

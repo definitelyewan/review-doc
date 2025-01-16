@@ -1,8 +1,18 @@
+/**
+ * Backend code for the login page
+ */
+
 import bcrypt from 'bcryptjs';
 import { fail, redirect } from '@sveltejs/kit';
 import db from "$lib/server/db.js";
 
+/**
+ * Form actions
+ */
 export const actions = {
+    /**
+     * Authenticate the user and set a session cookie
+     */
     login: async ({ cookies, request}) => {
 
         const data = await request.formData()
@@ -13,15 +23,15 @@ export const actions = {
             return fail(400, { invalid: true })
         }
 
+        // check if user exists
         let users = await db.query(`SELECT * FROM user WHERE user_name = '${db.sanitize_input(username)}' LIMIT 1`);
 
         if (users.length == 0) {
             return fail(400, { credentials: true })
         }
 
-
+        // can they login?
         const valid_password = await bcrypt.compare(db.sanitize_input(password), users[0].user_pass);
-
 
         if (!valid_password) {
             return fail(400, { credentials: true }) 

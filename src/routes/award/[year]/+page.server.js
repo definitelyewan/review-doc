@@ -1,7 +1,15 @@
+/**
+ * Backend server code for the awards page
+ */
 
 import db  from '$lib/server/db.js';
 
 
+/**
+ * On page load get all awards and nominations for the year seperated by user.
+ * @param {*} loadEvent 
+ * @returns 
+ */
 export const load = async(loadEvent) => {
 
     const { fetch, params } = loadEvent;
@@ -11,9 +19,10 @@ export const load = async(loadEvent) => {
     let unique_awards = new Object([]);
     const year = params.year;
 
-
+    
     let users = await db.query(`SELECT user_name, user_id FROM user`);
 
+    // populate a JSON object with a users basic info and all their awards for that year
     for (const user of users) {
         let block = new Object(
         {
@@ -22,6 +31,7 @@ export const load = async(loadEvent) => {
             media_award_info: []
         });
 
+        // get award info from the db
         let awards = await db.query(`SELECT * FROM award WHERE user_id = ${user.user_id} AND award_issue_year = ${year}`);
 
         for (const award of awards) {
@@ -46,6 +56,7 @@ export const load = async(loadEvent) => {
 
     }
 
+    // remove any duplicate awards
     users = await db.query(`SELECT DISTINCT award_name from award WHERE award_issue_year = ${year}`);
     
     users.forEach(name => {

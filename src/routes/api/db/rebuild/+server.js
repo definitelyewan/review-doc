@@ -5,9 +5,8 @@ import security from '$lib/server/security';
 import db from '$lib/server/db.js';
 
 /**
- * Test the server to see if its running
- * @param {*} param 
- * @returns 
+ * Provides a post endpoint to the instance owner cabable of rebuilding the database. This will drop all tables and
+ * recreate them. It will then insert the data from the latest backup.
  */
 export async function POST ({ request }) {
     
@@ -124,6 +123,8 @@ export async function POST ({ request }) {
         const users = data.user;
         const medias = data.medias;
 
+        // insert users
+
         for (let user of users) {
             user.user_name = user.user_name == null ? "NULL" : `'${db.sanitize_input(String(user.user_name))}'`;
             user.user_pass = user.user_pass == null ? "NULL" : `'${db.sanitize_input(String(user.user_pass))}'`;
@@ -135,6 +136,7 @@ export async function POST ({ request }) {
             const sql = "INSERT INTO user(" + Object.keys(user).join(",") + ") VALUES (" + Object.values(user).join(",") + ")";
             await db.query(sql);
         }
+        // insert media info
 
         for (const media_info of medias) {
 
@@ -249,24 +251,3 @@ export async function POST ({ request }) {
     return json({ message: "OK" });
 
 }
-
-
-/* <script context="module">
-  export async function load({ fetch }) {
-    const res = await fetch('/api/db');
-    const data = await res.json();
-    return { props: { data } };
-  }
-</script>
-
-<script>
-  export let data;
-</script>
-
-<template>
-  <ul>
-    {#each data as item}
-      <li>{item.name}</li>
-    {/each}
-  </ul>
-</template> */

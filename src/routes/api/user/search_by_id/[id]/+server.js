@@ -1,14 +1,13 @@
 import { json } from '@sveltejs/kit';
 import security from '$lib/server/security';
 import db from '$lib/server/db';
-import path from 'path';
-import fs, { stat } from 'fs';
-import http from 'http';
-import https from 'https';
-import mime from 'mime';
 
+/**
+ * Provides a get endpoint to get a user by id
+ */
 export async function GET({ request, params }) {
 
+    // validate user
     const auth = request.headers.get('Authorization');
     const valid = await security.validate_api_key(auth);
 
@@ -17,7 +16,7 @@ export async function GET({ request, params }) {
     }
 
     try {
-
+        // deny any non admin or non-original user from accessing this endpoint
         const user_id = parseInt(params.id);
 
         if (isNaN(user_id)) {

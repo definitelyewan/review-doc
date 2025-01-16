@@ -1,10 +1,49 @@
-# setting up
+# Running on a server
+
 - make sure apache/nginx is running
-- make a rule for the directory
-- make a rule for the staging forlder in systemd
-- chmod +x on index.js
-- copy node shabang onto index.js
+- make a rule for the directory in nginx/apache
+- make a rule for the staging folder in systemd so it starts as a service
+- chmod +x on index.js in staging/
+- copy node shabang onto index.js in staging/
 - profit
+
+# Setup
+
+- ensure mariadb, node, and, npm are installed
+- create a mariadb user with read and write on a new database
+- run npm install in the project directory
+- create a .env file with the following:
+ ```sh
+DB_HOST=<mariadb IP>
+DB_USER=<mariadb username>
+DB_PASSWORD=<mariadb users password>
+DB_NAME=<mariadb database name>
+DB_CHARSET=utf8mb4
+DB_PORT=<mariadb port (probably 3306)>
+
+REVIEWER_PLUS_MASTER_API_KEY=<a master api key for the admin user>
+
+REVIEWER_PLUS_BACKUP_DIR=<a backup path for database .json snapshots>
+REVIEWER_PLUS_IMG_DIR=<a image path for stored images>
+
+REVIEWER_PLUS_REGISTRATION_ENABLED=<true or false>
+
+REVIEWER_PLUS_IGDB_CLIENT_ID=<IGDB api client key>
+REVIEWER_PLUS_IGDB_SECRET_ID=<IGDB api secret key>
+
+REVIEWER_PLUS_TMDB_READ_ACCESS_TOKEN=<TMDB api key>
+ 
+ ```
+- run ``npm install``
+- run ``npm run dev`` or ``npm run build``
+- profit
+
+# Tech stack
+- mariadb
+- node
+- svelte kit
+- tailwind
+- skeleton ui
 
 # create-svelte
 

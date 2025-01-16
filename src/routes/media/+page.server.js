@@ -1,9 +1,15 @@
+/**
+ * Backend code for the media page to function
+ */
 
 import db from '$lib/server/db.js';
 import igdb from '$lib/server/igdb.js';
 import tmdb from '$lib/server/tmdb.js';
 import security from '$lib/server/security';
 
+/**
+ * On page load get all media from the database
+ */
 export const load = async(loadEvent) => {
 
     const media = await db.query('SELECT * FROM media ORDER BY media_name ASC');
@@ -37,13 +43,20 @@ export const load = async(loadEvent) => {
 
 }
 
+/**
+ * Gets all related games that match a search term from igdb
+ * @param {String} media_search_word 
+ * @returns 
+ */
 async function igdb_search(media_search_word) {
 
+    //query igdb for games
     const igdb_init = await igdb.query('games',`fields *; search "${media_search_word}"; where (version_parent = null & (category = 0 | category = 10 | category = 8 | category = 4 | category = 9));limit 10;`);
     
     let igdb_json = [];
     let usable_db = [];
 
+    // secndary query to get more information about the games
     for (let game of igdb_init) {
       let multiquery = new String();
 
@@ -95,7 +108,7 @@ async function igdb_search(media_search_word) {
       igdb_json.push(block);
     }
 
-
+    // sort through the data and get the relevant information
     for (let block of igdb_json) {
 
       let cover_url = '';
@@ -108,6 +121,7 @@ async function igdb_search(media_search_word) {
 
       for (let inner_block of block) {
         
+        // get the cover and banner images
         if (inner_block.name === 'cover') {
           if (inner_block.result[0] != undefined) {
             cover_url = inner_block.result[0].url.replace('t_thumb', 't_cover_big');
@@ -120,6 +134,8 @@ async function igdb_search(media_search_word) {
             banner_url = banner_url.replace('//', 'https://');
 
           }
+        
+        // get the tags
         } else if (inner_block.name === 'franchise') {
           for (let franchise of inner_block.result) {
             tags.push(franchise.name);
@@ -133,6 +149,7 @@ async function igdb_search(media_search_word) {
             let name_before_bracket = genre.name.split('(')[0].trim();
             tags.push(name_before_bracket);
           }
+        // get the companies
         } else if (inner_block.name === 'distributor') {
           for (let company of inner_block.result) {
             distributor.push(company.name);
@@ -141,6 +158,7 @@ async function igdb_search(media_search_word) {
           for (let company of inner_block.result) {
             studios.push(company.name);
           }
+        // game name
         } else if (inner_block.name === 'game') {
           name = inner_block.result[0].name;
 
@@ -171,8 +189,14 @@ async function igdb_search(media_search_word) {
     return {usable_db};
 }
 
+/**
+ * Gets all related media that match a search term from tmdb
+ * @param {String} media_search_word 
+ * @returns 
+ */
 async function tmdb_search(media_search_word) {
     
+    // query tmdb for media
     const tmdb_init = await tmdb.query('GET', `search/multi?query=${media_search_word}&include_adult=true&language=en-US&page=1`);
     let tmdb_json = [];
 
@@ -238,13 +262,15 @@ async function tmdb_search(media_search_word) {
         }
 
       }
-      
+
+      // can be empty so confirm its an array
       if (Array.isArray(details.production_companies)) {
         for (let studio of details.production_companies) {
             studios.push(studio.name);
         }
       }
 
+      // can be empty so confirm its an array
       if (Array.isArray(details.genres)) {
         for (let genre of details.genres) {
           for (let split_genre of genre.name.split('&')) {
@@ -273,8 +299,14 @@ async function tmdb_search(media_search_word) {
  
 }
 
+/**
+ * Form actions
+ */
 export const actions = {
 
+    /**
+     * Search for media from igdb and tmdb
+     */
     search_sites: async ({request}) => {
         const form_data = await request.formData();
         const media_search_word = form_data.get('media_search_word');
@@ -292,12 +324,15 @@ export const actions = {
             return {success: false, message: error.message, lookup: lookup};
         }
 
-
-        console.log(lookup);
-
         return {lookup: lookup};
     },
+
+    /**
+     * Adds a new peice of media to the database
+     */
     add_media: async ({request, locals}) => {
+
+        // get frontend data and filter it
         const form_data = await request.formData();
         const media_name = form_data.get('media_name');
         const media_type = form_data.get('media_type');
@@ -328,7 +363,8 @@ export const actions = {
         
         const result = await db.query(`SELECT media_id FROM media WHERE media_id = (SELECT MAX(media_id) FROM media)`);
         const media_id = result[0].media_id;
-    
+        
+        // sp,it manual info
         if (media_tags !== null) {
           for (let tag of media_tags.split(',')) {
             const good_tag = db.sanitize_input(tag);
@@ -366,6 +402,7 @@ export const actions = {
           }
         }
         
+        // download images
         await security.download_image(media_cover_path, media_id, 'cover');
 
         if (media_banner_path !== null) {

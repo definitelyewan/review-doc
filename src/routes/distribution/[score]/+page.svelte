@@ -1,3 +1,4 @@
+<!-- Frontend code required for the dist page to work -->
 <script>
     export let data;
     import { Avatar } from '@skeletonlabs/skeleton';

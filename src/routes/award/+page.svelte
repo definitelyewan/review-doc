@@ -1,3 +1,4 @@
+<!-- Frontend code to display the url for award/ -->
 <script>
     export let data = [];
     import corr from "$lib/client/corrections.js"
