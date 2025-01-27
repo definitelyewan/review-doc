@@ -258,7 +258,7 @@
                                                 {/if}
                                                 <input type="hidden" name="media_release_date_range_start" value={item.release_date_start} />
                                                 <input type="hidden" name="media_release_date_range_end" value={item.release_date_end} />
-                                                <input type="hidden" name="media_type" value={'game'} />
+                                                <input type="hidden" name="media_type" value={item.media_type} />
                                                 <button class="mt-2 mb-2 mr-2 ml-2 text-center badge variant-filled">Add</button>
                                             </form>
                                         </div>

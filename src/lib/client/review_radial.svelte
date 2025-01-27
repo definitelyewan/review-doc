@@ -6,7 +6,7 @@
 
 
 {#if score == 0}
-    <ProgressRadial class="mx-auto md:mx-0" meter="stroke-red-500" track="stroke-red-500/30" strokeLinecap="round" value={100}>💀</ProgressRadial>
+    <ProgressRadial class="mx-auto md:mx-0" width="{width}" meter="stroke-red-500" track="stroke-red-500/30" strokeLinecap="round" value={100}>💀</ProgressRadial>
 {:else if score <= 2}
     <ProgressRadial class="mx-auto md:mx-0" width="{width}" meter="stroke-orange-500" track="stroke-orange-500/30" strokeLinecap="round" value={score * 10}>{score} / 10</ProgressRadial>
 {:else if score <= 4}
