@@ -19,20 +19,29 @@ export async function POST ({ request }) {
     // drop tables
 
     try {
-        await db.query(`DROP TABLE IF EXISTS tag_of`);
-        await db.query(`DROP TABLE IF EXISTS director_of`);
-        await db.query(`DROP TABLE IF EXISTS distributor_of`);
-        await db.query(`DROP TABLE IF EXISTS studio_of`);
 
-        await db.query(`DROP TABLE IF EXISTS tag`);
-        await db.query(`DROP TABLE IF EXISTS director`);
-        await db.query(`DROP TABLE IF EXISTS distributor`);
-        await db.query(`DROP TABLE IF EXISTS studio`);
+        await db.drop_table("interaction_of_media");
+        await db.drop_table("interaction_of_review");
 
-        await db.query(`DROP TABLE IF EXISTS review`);
-        await db.query(`DROP TABLE IF EXISTS award`);
-        await db.query(`DROP TABLE IF EXISTS media`);
-        await db.query(`DROP TABLE IF EXISTS user`);
+        await db.drop_table("tag_of");
+        await db.drop_table("director_of");
+        await db.drop_table("distributor_of");
+        await db.drop_table("studio_of");
+
+        await db.drop_table("list_of_collaborators");
+        await db.drop_table("list_of");
+
+        await db.drop_table("tag");
+        await db.drop_table("director");
+        await db.drop_table("distributor");
+        await db.drop_table("studio");
+
+        await db.drop_table("review");
+        await db.drop_table("award");
+        await db.drop_table("media");
+        await db.drop_table("user");
+        await db.drop_table("list");
+        await db.drop_table("interaction");
 
     } catch (err) {
         console.error(err);
@@ -42,63 +51,7 @@ export async function POST ({ request }) {
     // make tables
 
     try {
-
-        await db.query(`CREATE TABLE IF NOT EXISTS user (
-                        user_id INT AUTO_INCREMENT UNIQUE,
-                        PRIMARY KEY(user_id),
-                        user_name VARCHAR(25) NOT NULL,
-                        user_pass TEXT NOT NULL,
-                        user_api_key VARCHAR(256) NOT NULL,
-                        user_token VARCHAR(256),
-                        user_profile_path TEXT,
-                        user_type ENUM('viewer', 'user', 'admin') DEFAULT 'viewer')`);
-
-        await db.query(`CREATE TABLE IF NOT EXISTS media (
-                        media_id INT AUTO_INCREMENT UNIQUE,
-                        PRIMARY KEY(media_id),
-                        media_name VARCHAR(512) NOT NULL,
-                        media_type ENUM('movie','tv','game','book','web','music','other') DEFAULT 'other',
-                        media_cover TEXT,
-                        media_banner TEXT,
-                        media_release_date_range_start DATE NOT NULL,
-                        media_release_date_range_end DATE,
-                        user_id INT DEFAULT 1,
-                        FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE SET DEFAULT)`);
-
-        await db.query(`CREATE TABLE IF NOT EXISTS review (
-                        review_id INT AUTO_INCREMENT,
-                        PRIMARY KEY(review_id),
-                        media_id INT,
-                        FOREIGN KEY(media_id) REFERENCES media(media_id) ON DELETE CASCADE,
-                        review_sub_name VARCHAR(255),
-                        review_bullets JSON NOT NULL,
-                        review_date DATE DEFAULT CURRENT_DATE,
-                        review_score VARCHAR(10) DEFAULT '0',
-                        review_limit VARCHAR(10) DEFAULT '10',
-                        review_platform VARCHAR(255),
-                        user_id INT DEFAULT 1,
-                        FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE)`);
-        
-        await db.query(`CREATE TABLE IF NOT EXISTS award (
-                        award_id INT AUTO_INCREMENT,
-                        PRIMARY KEY(award_id),
-                        media_id INT,
-                        FOREIGN KEY(media_id) REFERENCES media(media_id) ON DELETE CASCADE,
-                        award_name VARCHAR(512) NOT NULL,
-                        award_status ENUM('nominee','winner') DEFAULT 'nominee',
-                        award_issue_year INT NOT NULL,
-                        user_id INT DEFAULT 1,
-                        FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE)`);
-        
-        await db.create_descriptor_table("tag");
-        await db.create_descriptor_table("studio");
-        await db.create_descriptor_table("director");
-        await db.create_descriptor_table("distributor");
-
-        await db.create_junction_table("tag_of", "media_id", "tag_id", "media", "tag");
-        await db.create_junction_table("director_of", "media_id", "director_id", "media", "director");
-        await db.create_junction_table("distributor_of", "media_id", "distributor_id", "media", "distributor");
-        await db.create_junction_table("studio_of", "media_id", "studio_id", "media", "studio");
+        await db.create_db_tables();
     } catch (err) {
         console.error(err);
         return json({ message: "Cannot Create Tables" }, { status: 500 });
@@ -122,6 +75,7 @@ export async function POST ({ request }) {
         const data = JSON.parse(fs.readFileSync(latest_snapshot));
         const users = data.user;
         const medias = data.medias;
+        const lists = data.lists;
 
         // insert users
 
@@ -132,7 +86,21 @@ export async function POST ({ request }) {
             user.user_profile_path = user.user_profile_path == null ? "NULL" : `'${db.sanitize_input(String(user.user_profile_path))}'`;
             user.user_type = user.user_type == null ? "'viewer'" : `'${db.sanitize_input(String(user.user_type))}'`;
             user.user_token = user.user_token == null ? "NULL" : `'${db.sanitize_input(String(user.user_token))}'`;
-    
+            user.user_icon_colour = user.user_icon_colour == null ? "'000000'" : `'${db.sanitize_input(String(user.user_icon_colour))}'`;
+            user.user_icon_text = user.user_icon_text == null ? "NULL" : `'${db.sanitize_input(String(user.user_icon_text))}'`;
+
+            // check if settings are stored right in the backup
+
+            if (user.user_icon_colour.length != 8) {
+                console.error("Invalid icon colour for user " + user.user_name + " setting it to default #000000");
+                user.user_icon_colour = user.user_icon_colour = "'000000'"
+            }
+
+            if (user.user_icon_text !== "NULL" && user.user_icon_text.length > 2) {
+                console.error("Invalid icon text for user " + user.user_name + " setting it to NULL");
+                user.user_icon_text = "NULL";
+            }
+
             const sql = "INSERT INTO user(" + Object.keys(user).join(",") + ") VALUES (" + Object.values(user).join(",") + ")";
             await db.query(sql);
         }
@@ -171,11 +139,48 @@ export async function POST ({ request }) {
                     review.review_platform = review.review_platform == null ? "NULL" : `'${db.sanitize_input(String(review.review_platform))}'`;
                     review.user_id = review.user_id == null ? "1" : `'${db.sanitize_input(String(review.user_id))}'`;
             
+
+                    let interactions = review.interactions;
+                    delete review.interactions;
+
                     const sql = `INSERT INTO review(media_id,${Object.keys(review).join(",")}) VALUES (${media_id},${Object.values(review).join(",")})`;
                     await db.query(sql);
+
+                    if (interactions != undefined) {
+                        for (let interaction of interactions) {
+                            interaction.interaction_value = interaction.interaction_value == null ? `'none'` : `'${db.sanitize_input(String(interaction.interaction_value))}'`; 
+                            interaction.interaction_comment = interaction.interaction_comment == null ? "NULL" : `'${db.sanitize_input(String(interaction.interaction_type))}'`;
+                            interaction.user_id = interaction.user_id == null ? "1" : `'${db.sanitize_input(String(interaction.user_id))}'`;
+                            
+                            const inter_insert = await db.query(`INSERT INTO interaction(interaction_id, interaction_value, interaction_comment, user_id) VALUES (${interaction.interaction_id}, ${interaction.interaction_value}, ${interaction.interaction_comment}, ${interaction.user_id})`);
+                            const inter_link = await db.query(`INSERT INTO interaction_of_review(review_id, interaction_id) VALUES (${review.review_id}, ${interaction.interaction_id})`);
+                            
+                        
+                        }
+
+                    }
+
+
+
                 }
 
             }
+
+            if ("interactions" in media_info) {
+                for (let interaction of media_info.interactions) {
+                    interaction.interaction_value = interaction.interaction_value == null ? `'none'` : `'${db.sanitize_input(String(interaction.interaction_value))}'`; 
+                    interaction.interaction_comment = interaction.interaction_comment == null ? "NULL" : `'${db.sanitize_input(String(interaction.interaction_type))}'`;
+                    interaction.user_id = interaction.user_id == null ? "1" : `'${db.sanitize_input(String(interaction.user_id))}'`;
+                    
+                    await db.query(`INSERT INTO interaction(interaction_id, interaction_value, interaction_comment, user_id) VALUES (${interaction.interaction_id}, ${interaction.interaction_value}, ${interaction.interaction_comment}, ${interaction.user_id})`);
+                    await db.query(`INSERT INTO interaction_of_media(media_id, interaction_id) VALUES (${media_info.media_id}, ${interaction.interaction_id})`);
+                    
+                
+                }
+
+            }
+
+
 
             if ("awards" in media_info) {
                 for (let award of media_info.awards) {
@@ -188,6 +193,7 @@ export async function POST ({ request }) {
                     await db.query(sql);
                 }
             }
+
 
             if ("directors" in media_info) {
 
@@ -237,6 +243,33 @@ export async function POST ({ request }) {
                     // link
                     await db.query(`INSERT INTO tag_of (media_id, tag_id) 
                                     VALUES(${media_id}, (SELECT tag_id FROM tag WHERE tag_name = ${tag_name} LIMIT 1))`);
+                }
+            }
+
+        }
+
+        // insert lists
+
+        for (let list of lists) {
+            list.list_id = list.list_id == null ? "NULL" : `'${db.sanitize_input(String(list.list_id))}'`;
+            list.list_description = list.list_description == null ? "NULL" : `'${db.sanitize_input(String(list.list_description))}'`;
+            list.list_name = list.list_name == null ? "NULL" : `'${db.sanitize_input(String(list.list_name))}'`;
+            list.user_id = list.user_id == null ? "NULL" : `'${db.sanitize_input(String(list.user_id))}'`;
+
+            const sql = `INSERT INTO list(list_id,list_description,list_name,user_id) VALUES (${list.list_id}, ${list.list_description}, ${list.list_name}, ${list.user_id})`;
+            await db.query(sql);
+
+            for (let media of list.media) {
+                media.media_id = media.media_id == null ? "NULL" : `'${db.sanitize_input(String(media.media_id))}'`;
+                const sql = `INSERT INTO list_of(list_id, media_id) VALUES (${list.list_id}, ${media.media_id})`;
+                await db.query(sql);
+            }
+
+            if (list.collaborators != undefined) {
+                for (let collaborator of list.collaborators) {
+                    collaborator.user_id = collaborator.user_id == null ? "NULL" : `'${db.sanitize_input(String(collaborator.user_id))}'`;
+                    const sql = `INSERT INTO list_of_collaborators(list_id, user_id) VALUES (${list.list_id}, ${collaborator.user_id})`;
+                    await db.query(sql);
                 }
             }
 

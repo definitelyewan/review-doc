@@ -123,7 +123,7 @@
 
     <Drawer position="right">
         <div class="p-2">
-            <p class=" p-2 text-md text-center text-warning-500"><i>YOU BETTER CHECK THAT THIS ISNT ALREADY POSTED. NO REMASTERS OR RERELEASES. REMAKES ARE OK!</i></p>
+            <!-- <p class=" p-2 text-md text-center text-warning-500"><i>YOU BETTER CHECK THAT THIS ISNT ALREADY POSTED. NO REMASTERS OR RERELEASES. REMAKES ARE OK!</i></p> -->
             
             
             <RadioGroup display="flex" class="items-center justify-center">

@@ -1,7 +1,9 @@
 <!-- login frontend-->
 <script>
-
+    export let data;
     export let form;
+
+    const can_register = data.can_register;
 
 </script>
 
@@ -30,8 +32,16 @@
                 <p class="text-error-500 mt-2">Your username, passowrd, or both are incorrect.</p>
             {/if}
         </div>
+            <div class="flex">
+                <button type="submit" class="btn mt-2 mb-2 ml-2 variant-filled">Login</button>
+                {#if can_register === true}
+                    <a href="../register">
+                        <button class="btn mt-2 mb-2 ml-2 variant-filled">Sign Up?</button>
+                    </a>
+                {/if}
+                
+            </div>
 
-            <button type="submit" class="btn mt-2 mb-2 ml-2 variant-filled">Login</button>
         </form>
     </div>
 </div>

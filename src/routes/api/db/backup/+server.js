@@ -20,7 +20,7 @@ export async function POST ({ request }) {
     // attempt backup
     try {
 
-        let backup = new Object({user: [], medias: []})
+        let backup = new Object({user: [], medias: [], lists: []})
         const date = new Date();
         const file_name = date.toISOString().split('T')[0] + ".json";
         
@@ -34,7 +34,7 @@ export async function POST ({ request }) {
         
         for (const media of medias) {
 
-            let block = new Object({media_id : 1, directors: [], distributors: [], studios: [], tags: [], media : {}, reviews: [], awards: []});
+            let block = new Object({media_id : 1, directors: [], distributors: [], studios: [], tags: [], media : {}, reviews: [], awards: [], interactions: []});
             const media_id = media.media_id;
             
             // deal with media table
@@ -61,13 +61,19 @@ export async function POST ({ request }) {
 
             let reviews = await db.query(`SELECT * FROM review WHERE media_id = ${media_id}`);
 
-            reviews.forEach(review => {
+            reviews.forEach(async review => {
                 
                 delete review.media_id;
 
                 if (review.review_date != null) {
                     review.review_date = review.review_date.toISOString().split('T')[0];
                 }
+
+                let review_interactions = await db.query(`SELECT interaction.* FROM interaction INNER JOIN interaction_of_review
+                    WHERE interaction.interaction_id = interaction_of_review.interaction_id
+                    AND interaction_of_review.review_id = ${review.review_id}`);
+                
+                review.interactions = review_interactions;
             });
 
             block.reviews = reviews;
@@ -96,8 +102,36 @@ export async function POST ({ request }) {
                     block[descriptor + 's'].push(value[descriptor + '_name']);
                 }
             }
+
+            //deal with interaction table
+            let interactions = await db.query(`SELECT interaction.* FROM interaction INNER JOIN interaction_of_media
+                                                WHERE interaction.interaction_id = interaction_of_media.interaction_id
+                                                AND interaction_of_media.media_id = ${media_id}`);
+            block.interactions = interactions;
             
             backup.medias.push(block);
+        }
+
+        const lists = await db.query(`SELECT * FROM list`);
+
+
+        
+        for (const list of lists) {
+            let block = new Object({list_id : 1, user_id: 1, list_name: "", list_description: "", media: [], collaborators: []});
+            
+            let media_values = await db.query(`SELECT media_id FROM list_of WHERE list_id = ${list.list_id}`);
+            let collaborators = await db.query(`SELECT user_id FROM list_of_collaborators WHERE list_id = ${list.list_id}`);
+
+            block.list_id = list.list_id;
+            block.user_id = list.user_id;
+            block.list_name = list.list_name;
+            block.list_description = list.list_description;
+
+            block.media = media_values;
+            block.collaborators = collaborators;
+
+
+            backup.lists.push(block);        
         }
 
 

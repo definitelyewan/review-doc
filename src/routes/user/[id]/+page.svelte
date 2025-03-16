@@ -1,6 +1,6 @@
 <script>
     import ReviewRadial from '$lib/client/review_radial.svelte';
-    import { Avatar } from '@skeletonlabs/skeleton';
+    import DynamicAvatar from '$lib/client/dynamic_avatar.svelte';
     import { TabGroup, Tab} from '@skeletonlabs/skeleton';
     import corr from '$lib/client/corrections.js';
     export let data;
@@ -9,7 +9,7 @@
     let elemMostAcclaimedMovies;
     let tabSet = 0;
     const newest_reviews = data.newest_reviews;
-    const most_acclaimed = data.most_acclaimed;
+    const most_acclaimed = data.favs;
     const score_counts = data.score_counts;
     const user = data.user;
 
@@ -31,7 +31,13 @@
 <title>Review Doc - {user.user_name}</title>
 
 <div class="flex flex-col items-center justify-center mt-2">
-    <Avatar width="w-20" initials={user.user_name} background="bg-primary-500"/>
+    <DynamicAvatar
+        width="w-20"
+        user_initals="{user.user_icon_text}"
+        user_colour="{user.user_icon_colour}"
+        user_id="{user.user_id}"
+        user_image="{user.user_profile_path}"
+    />
     <p class="text-2xl"><b>{user.user_name}</b></p>
 </div>
 

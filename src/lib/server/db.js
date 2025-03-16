@@ -5,6 +5,9 @@
 import mariadb from 'mariadb';
 import dotenv from 'dotenv';
 
+
+
+
 // connects to a instance of mariadb using a .env file in the project directory
 dotenv.config();
 
@@ -85,6 +88,91 @@ async function create_junction_table(table_name, table1_id, table2_id, ref_table
     )`);
 }
 
+async function create_db_tables() {
+// icon colours can be stored as a hex value for a large range of colours
+
+    await query(`CREATE TABLE IF NOT EXISTS user (
+                    user_id INT AUTO_INCREMENT UNIQUE,
+                    PRIMARY KEY(user_id),
+                    user_name VARCHAR(25) NOT NULL,
+                    user_pass TEXT NOT NULL,
+                    user_api_key VARCHAR(256) NOT NULL,
+                    user_token VARCHAR(256),
+                    user_profile_path TEXT,
+                    user_icon_colour VARCHAR(6) DEFAULT '000000',
+                    user_icon_text VARCHAR(2) DEFAULT NULL,
+                    user_type ENUM('viewer', 'user', 'admin') DEFAULT 'viewer')`);
+
+    await query(`CREATE TABLE IF NOT EXISTS media (
+                    media_id INT AUTO_INCREMENT UNIQUE,
+                    PRIMARY KEY(media_id),
+                    media_name VARCHAR(512) NOT NULL,
+                    media_type ENUM('movie','tv','game','book','web','music','other') DEFAULT 'other',
+                    media_cover TEXT,
+                    media_banner TEXT,
+                    media_release_date_range_start DATE NOT NULL,
+                    media_release_date_range_end DATE,
+                    user_id INT DEFAULT 1,
+                    FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE SET DEFAULT)`);
+
+    await query(`CREATE TABLE IF NOT EXISTS review (
+                    review_id INT AUTO_INCREMENT,
+                    PRIMARY KEY(review_id),
+                    media_id INT,
+                    FOREIGN KEY(media_id) REFERENCES media(media_id) ON DELETE CASCADE,
+                    review_sub_name VARCHAR(255),
+                    review_bullets JSON NOT NULL,
+                    review_date DATE DEFAULT CURRENT_DATE,
+                    review_score VARCHAR(10) DEFAULT '0',
+                    review_limit VARCHAR(10) DEFAULT '10',
+                    review_platform VARCHAR(255),
+                    user_id INT DEFAULT 1,
+                    FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE)`);
+    
+    await query(`CREATE TABLE IF NOT EXISTS award (
+                    award_id INT AUTO_INCREMENT,
+                    PRIMARY KEY(award_id),
+                    media_id INT,
+                    FOREIGN KEY(media_id) REFERENCES media(media_id) ON DELETE CASCADE,
+                    award_name VARCHAR(512) NOT NULL,
+                    award_status ENUM('nominee','winner') DEFAULT 'nominee',
+                    award_issue_year INT NOT NULL,
+                    user_id INT DEFAULT 1,
+                    FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE)`);
+
+    await query(`CREATE TABLE IF NOT EXISTS list (
+                    list_id INT AUTO_INCREMENT,
+                    PRIMARY KEY(list_id),
+                    list_description TEXT,
+                    list_name VARCHAR (512) NOT NULL,
+                    user_id INT,
+                    FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE)`);
+
+    await query(`CREATE TABLE IF NOT EXISTS interaction (
+                interaction_id INT AUTO_INCREMENT,
+                PRIMARY KEY(interaction_id),
+                interaction_value ENUM('like', 'dislike', 'none') DEFAULT 'none',
+                interaction_comment TEXT,
+                user_id INT,
+                FOREIGN KEY(user_id) REFERENCES user(user_id) ON DELETE CASCADE)`);
+    
+    await create_descriptor_table("tag");
+    await create_descriptor_table("studio");
+    await create_descriptor_table("director");
+    await create_descriptor_table("distributor");
+
+    await create_junction_table("tag_of", "media_id", "tag_id", "media", "tag");
+    await create_junction_table("director_of", "media_id", "director_id", "media", "director");
+    await create_junction_table("distributor_of", "media_id", "distributor_id", "media", "distributor");
+    await create_junction_table("studio_of", "media_id", "studio_id", "media", "studio");
+    await create_junction_table("list_of", "list_id", "media_id", "list", "media");
+
+    await create_junction_table("interaction_of_review", "interaction_id", "review_id", "interaction", "review");
+    await create_junction_table("interaction_of_media", "interaction_id", "media_id", "interaction", "media");
+
+    await create_junction_table("list_of_collaborators", "list_id", "user_id", "list", "user");
+}
+
 /**
  * converts a user api key to a user id
  * @param {string} api_key 
@@ -108,10 +196,20 @@ async function user_api_key_to_id(api_key) {
 
 }
 
+/**
+ * drops a table from the database by its name
+ * @param {string} table_name 
+ */
+async function drop_table(table_name) {
+    return await query(`DROP TABLE IF EXISTS ${table_name}`);
+}
+
 export default {
     sanitize_input,
     query,
     create_descriptor_table,
     create_junction_table,
-    user_api_key_to_id
+    create_db_tables,
+    user_api_key_to_id,
+    drop_table
 };

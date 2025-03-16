@@ -4,7 +4,19 @@
 
 import bcrypt from 'bcryptjs';
 import { fail, redirect } from '@sveltejs/kit';
-import db from "$lib/server/db.js";
+import db from '$lib/server/db.js';
+import security from '$lib/server/security.js';
+
+export const load = async(loadEvent) => {
+
+    if (!security.registrable()) {
+        return {can_register: false};
+    }
+
+    return {can_register: true};
+
+}
+
 
 /**
  * Form actions

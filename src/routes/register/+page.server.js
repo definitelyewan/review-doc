@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { fail, redirect } from '@sveltejs/kit';
-import db from "$lib/server/db.js";
+import db from '$lib/server/db.js';
+import security from '$lib/server/security.js';
 
 
 export const actions = {
@@ -29,19 +30,27 @@ export const actions = {
         const hashed_password = await bcrypt.hash(password, 10);
         const api_key = await bcrypt.hash(`${hashed_password} + ${username}`, 10);
         const user_token = crypto.randomUUID();
+        const characters = '0123456789abcdef';
+        const user_initials = username.substring(0, 2).toUpperCase();
+        let user_colour = '';
+
+        for (let i = 0; i < 6; i++) {
+            const random_index = Math.floor(Math.random() * characters.length);
+            user_colour += characters[random_index];
+        }
 
         // Save the user to the mock database
         try {
 
-            if (process.env.REVIEWER_PLUS_REGISTRATION_ENABLED != 'true') {
+            if (!security.registrable()) {
                 throw new Error("Disabled");
             } 
 
 
-            await db.query(`INSERT INTO user(user_name, user_pass, user_api_key, user_type, user_token) 
-                            VALUES('${username}', '${hashed_password}', '${api_key}', 'user', '${user_token}')`);
+            await db.query(`INSERT INTO user(user_name, user_pass, user_api_key, user_type, user_token, user_icon_colour, user_icon_text) 
+                            VALUES('${username}', '${hashed_password}', '${api_key}', 'user', '${user_token}', '${user_colour}', '${user_initials}')`);
 
-
+            await db.query(`INSERT INTO list(list_name, list_description, user_id) VALUES('Favourites', '${username}''s favourite media', (SELECT user_id FROM user WHERE user_name = '${username}' LIMIT 1))`);
         } catch (err) {
             console.error(err);
             return fail(500, {user_fail_reg_closed: true})

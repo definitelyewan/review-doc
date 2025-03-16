@@ -1,4 +1,3 @@
-<!-- Frontend code for media/[id] to work-->
 <script>
 	export let data;
 	export let form;
@@ -12,9 +11,82 @@
     import { popup } from '@skeletonlabs/skeleton';
     import { storePopup } from '@skeletonlabs/skeleton';
     import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-
 	import ReviewRadial from '$lib/client/review_radial.svelte';
 	import ReviewBox from '$lib/client/review_box.svelte';
+    import { writable } from 'svelte/store';
+
+	let userLists = data.userLists;
+	let mediaInLists = data.mediaInLists;
+	let userMediaAdded = data.userMediaAdded;
+
+	let selectedList = '';
+	let selectedRemoveList = '';
+    let isInList = false; // Set to true if media is in user's list
+    let showListPopup = false;
+    let newListName = '';
+	let newListDescription ='';
+
+
+	$: isInList = userMediaAdded.some(entry => entry.media_id == media_id);
+	
+    // Store for popup state
+    const listPopupStore = writable({
+        open: false,
+        mode: 'select' // 'select' or 'create'
+    });
+    
+    // Setup popup for list selection
+    storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
+    let listPopupSettings = {
+        event: 'click',
+        target: 'listSelectionPopup',
+        placement: 'bottom',
+    };
+
+	// Setup popup for list selection
+    storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
+    let removeListPopupSettings = {
+        event: 'click',
+        target: 'removeListSelectionPopup',
+        placement: 'bottom',
+    };
+
+    // Function to toggle the list popup
+    function toggleListPopup() {
+        showListPopup = !showListPopup;
+    }
+    
+    // Function to handle adding to existing list
+    async function addToExistingList() {
+        if (!selectedList) return;
+        
+        // Add your form submission logic here
+        console.log(`Adding to existing list: ${selectedList}`);
+
+		// Perform any necessary logic (if needed)
+		setTimeout(() => {
+			window.location.href = `/media/${media_id}`;
+		}, 500); // Small delay to ensure form submission
+
+        // Close popup after submission
+        showListPopup = false;
+        isInList = true;
+
+    }
+
+	function createNewList() {
+		// Perform any necessary logic (if needed)
+		setTimeout(() => {
+			window.location.href = `/media/${media_id}`;
+		}, 500); // Small delay ensures the form submission is processed
+	}
+
+	function removeFromList() {
+		setTimeout(() => {
+			window.location.href = `/media/${media_id}`;
+		}, 500); // Ensures the form submits before redirecting
+	}
+
 
 	function get_avg_score_general(reviews) {
 		let sum = 0;
@@ -54,6 +126,8 @@
 		return unique_combined;
 	}
 
+	const user_info = $page.data.user;
+	const possible_tags = data.possible_tags;
 	const media_name = data.media_data.media.media_name;
 	const media_release_string = `Released ${data.media_data.media.media_release_date_range_start}` + (data.media_data.media.media_release_date_range_end != null ? ` - ${data.media_data.media.media_release_date_range_end}` : '');
 	const media_id = data.media_data.media.media_id;
@@ -185,10 +259,23 @@
 
 	let award_radio = 0;
 	let award_name = '';
-	let award_id = null;
 	const user_awards = data.user_awards;
 
+	/**
+	 * edit menu
+	*/
+	let current_tags = tags;
+	let new_tag_text = '';
 
+    function add_tag(tag) {
+        if (tag.trim() !== '' && !current_tags.includes(tag)) {
+            current_tags = [...current_tags, tag];
+        }
+    }
+
+	function remove_tag(tag) {
+		current_tags = current_tags.filter((t) => t !== tag);
+	}
 
 </script>
 
@@ -417,6 +504,81 @@
 							</div>
 						</svelte:fragment>
 					</TreeViewItem>
+					{#if user_info.type !== 'viewer'}
+						<TreeViewItem>
+							Edit Post
+							<svelte:fragment slot="children">
+								<div class="relative w-full p-2">
+									<p class="text-2xl mb-1">All Tags</p>
+									<p class="text-sm"><i>Modify how this item is tagged by applying new already known tags. To add a tag click it below to add it, if it is not listed please enter it in the field below.</i></p>
+									<div class="mt-2 card p-2 h-48 overflow-y-auto">
+										<div class="items-center justify-center text-center card p-2">
+											<p class="text-sm mb-1">Known Tags</p>
+										</div>
+										
+										<div class="flex flex-wrap overflow-x-auto items-center justify-center">
+											{#each possible_tags as tag}
+												<button class="badge variant-filled mt-2 mb-2 mr-1" on:click={() => add_tag(tag.tag_name)}>
+													<span class="text-md">{tag.tag_name}➕</span>
+												</button>
+											{/each}
+										</div>
+									</div>
+
+									<div class="mt-2">
+										<p class="text-2xl mb-1">Enter a New Tag</p>
+										<div class="items-center justify-center flex flex-wrap">
+											<div class="flex items-center space-x-2 w-full">
+												<textarea
+													class="input rounded-sm p-1 flex-grow"
+													rows="1"
+													bind:value={new_tag_text}
+													placeholder="Enter a new tag..."
+												></textarea>
+												<button class="p-2 bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-lg" on:click={add_tag(new_tag_text)}>
+													<span class="text-md">Add</span>
+												</button>
+											</div>
+										</div>
+									</div>
+
+									<div class="mt-2">
+										<p class="text-2xl mb-1">Current Tags</p>
+										<p class="text-sm"><i>Below are the current tags applied. If you would like to remove any tag please click it to unapply it.</i></p>
+										<div class="mt-2 card p-2 h-48 overflow-y-auto">
+											<div class="items-center justify-center text-center card p-2">
+												<p class="text-sm mb-1">Current Tags</p>
+											</div>
+											
+											<div class="flex flex-wrap overflow-x-auto items-center justify-center">
+												{#each current_tags as tag}
+													<button class="badge variant-filled mt-2 mb-2 mr-1" on:click={() => remove_tag(tag)}>
+														<span class="text-md">{tag}➖</span>
+													</button>
+												{/each}
+											</div>
+										</div>
+									</div>
+									
+									<form action="?/update_tags" method="POST" use:enhance on:submit|preventDefault>
+										<input type="hidden" name="media_id" value={media_id} />
+										<input type="hidden" name="tags" value={current_tags} />
+										<button class="p-2 mt-2 mb-2 w-full bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-xl">
+											<span class="text-md p-2">Update Tags</span>
+										</button>
+									</form>
+									{#if form?.success === true}
+										<p class="text-center text-success-500">Tags have been updated! Refresh or go back to view your changes.</p>
+									{:else if form?.success === false}
+										<p class="text-center text-error-500">Tags failed to update! because {form.message}</p>
+									{/if}
+								</div>
+
+							
+
+							</svelte:fragment>
+						</TreeViewItem>
+					{/if}
 				</svelte:fragment>
 			</TreeViewItem>
 		</TreeView>
@@ -438,10 +600,136 @@
                     alt={media_name}
                 />
             </div>
-            <div class="flex-1 mt-4 md:mt-0 md:ml-2 md:mr-2 w-full">
+           <div class="flex-1 mt-4 md:mt-0 md:ml-2 md:mr-2 w-full">
                 <div class="grid-cols-1">
-                    <!-- title -->
-                    <h2 class="text-2xl md:text-4xl font-bold md:mt-0 text-center md:text-left">{media_name}</h2>
+					<div class="flex">
+						<!-- title -->
+						<h2 class="text-2xl md:text-4xl font-bold md:mt-0 text-center md:text-left">{media_name}</h2>
+						{#if $page.data.user}
+							<div class="p-2">
+								<button 
+									type="button" 
+									class="p-1 rounded-full bg-green-600 text-white hover:bg-gray-800 transition shadow-md"
+									use:popup={listPopupSettings}
+								>
+									➕
+								</button>
+
+								<!-- Remove from List Button -->
+								<button 
+									type="button" 
+									class="p-1 rounded-full bg-red-600 text-white hover:bg-red-800 transition shadow-md disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:cursor-not-allowed"
+									disabled={mediaInLists.length === 0}
+									use:popup={removeListPopupSettings}
+								>
+									➖
+								</button>
+							</div>
+						{/if}
+
+					</div>
+
+					
+					
+					<!-- List Selection Popup -->
+					<div data-popup="listSelectionPopup" class="card p-4 shadow-xl rounded-lg bg-surface-700 w-64 z-50">
+						<div class="flex flex-col gap-4">
+							<h3 class="text-lg font-semibold">Add to List</h3>
+							
+							<!-- Existing Lists -->
+							<div class="flex flex-col gap-2">
+								<p class="text-sm font-medium">Select an existing list:</p>
+								<div class="max-h-40 overflow-y-auto flex flex-col gap-1">
+									{#each userLists as list}
+										<label class="flex items-center space-x-2 p-2 rounded-md hover:bg-surface-600 transition cursor-pointer">
+											<input 
+												type="radio" 
+												name="listSelection" 
+												bind:group={selectedList} 
+												value={list.list_name}
+											/>
+											<span class="{selectedList === list.list_id ? 'font-bold' : ''}">{list.list_name}</span>
+										</label>
+									{/each}
+								</div>
+								<form action="/../../list/mylist?/addToList" method="POST" use:enhance>
+									<input type="hidden" name="selectedList" value={selectedList} />
+									<input type="hidden" name="media_id" value={media_id} />
+									<button 
+										class="p-2 mt-2 bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-lg"
+										on:click={addToExistingList}
+										disabled={!selectedList}
+									>
+										Add to Selected List
+									</button>
+								</form>
+							</div>
+							
+							<div class="border-t border-surface-500 my-2"></div>
+							
+							<!-- Create New List -->
+							<div class="flex flex-col gap-2">
+								<p class="text-sm font-medium">Or create a new list:</p>
+								<input 
+									type="text" 
+									class="input p-2 rounded-md" 
+									placeholder="New list name"
+									bind:value={newListName}
+								/>
+								<p class="text-sm font-medium">Add a custom description: </p>
+								<input 
+									type="text" 
+									class="input p-2 rounded-md" 
+									placeholder="Description"
+									bind:value={newListDescription}
+								/>
+								<form action="/../../list/mylist?/createList" method="POST" use:enhance>
+									<input type="hidden" name="newListName" value={newListName} />
+									<input type="hidden" name="newListDescription" value={newListDescription} />
+									<button 
+										class="p-2 mt-2 bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-lg"
+										on:click={createNewList}
+									>Create New List</button>
+								</form>
+							</div>
+						</div>
+					</div>
+					<!-- Remove List Selection Popup -->
+					<div data-popup="removeListSelectionPopup" class="card p-4 shadow-xl rounded-lg bg-surface-700 w-64 z-50">
+						<div class="flex flex-col gap-4">
+							<h3 class="text-lg font-semibold">Remove from List</h3>
+
+							<!-- Lists that this media is in -->
+							<div class="flex flex-col gap-2">
+								<p class="text-sm font-medium">Select a list to remove from:</p>
+								<div class="max-h-40 overflow-y-auto flex flex-col gap-1">
+									{#each mediaInLists as list}
+										<label class="flex items-center space-x-2 p-2 rounded-md hover:bg-surface-600 transition cursor-pointer">
+											<input 
+												type="radio" 
+												name="removeListSelection" 
+												bind:group={selectedRemoveList} 
+												value={list.list_name}
+											/>
+											<span class="{selectedRemoveList === list.list_id ? 'font-bold' : ''}">{list.list_name}</span>
+										</label>
+									{/each}
+								</div>
+								<form action="/../../list/mylist?/removeFromList" method="POST" use:enhance>
+									<input type="hidden" name="selectedRemoveList" value={selectedRemoveList} />
+									<input type="hidden" name="media_id" value={media_id} />
+									<button 
+										class="p-2 mt-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+										disabled={!selectedRemoveList}							
+										on:click={removeFromList}
+									>
+										Remove from Selected List
+									</button>
+								</form>
+							</div>
+						</div>
+					</div>
+					
                     <p class="text-lg md:text-xl text-center md:text-left">{media_release_string}</p>
                     <!-- tags -->
                     <div class="flex flex-wrap">
@@ -491,7 +779,7 @@
 					<p class="mt-2">{media_name} has not won any awards yet, maybe it will one day</p>
 				{:else}
 					{#each unique_award_years as year}
-						<p class="mt-2">Awards won in {unique_award_years[0]}</p>
+						<p class="mt-2">Awards won in {year}</p>
 						<div
 							class="relative card mt-2 p-2 w-full h-full shadow-lg rounded-lg flex items-center justify-center mx-auto"
 						>
@@ -621,3 +909,4 @@
 	{/each}
 
 {/if}
+

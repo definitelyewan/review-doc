@@ -63,7 +63,7 @@
     </div>
     <div class="flex flex-col items-center">
         <ProgressRadial meter="stroke-orange-500" track="stroke-orange-500/30" strokeLinecap="round" value=20>2 / 10</ProgressRadial>
-        <p class="text-center mt-2 mb-2">Surprised this thing got greenlit will remember as shit</p>
+        <p class="text-center mt-2 mb-2">Surprised this thing got greenlit will remember as garbage</p>
     </div>
     <div class="space-y-4 mb-2">
         <hr class="hr border-t-8" />

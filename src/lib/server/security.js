@@ -8,6 +8,8 @@ import http from 'http';
 import https from 'https';
 import path from 'path';
 import fs from 'fs';
+import { pipeline } from 'stream';
+import { promisify } from 'util';
 
 // connects to a instance of mariadb using a .env file in the project directory
 dotenv.config();
@@ -148,12 +150,78 @@ async function download_image(url, media_id, type) {
     console.log(await db.query(`UPDATE media SET media_${type} = '${file_name}' WHERE media_id = ${media_id}`));
 }
 
+
+/**
+ * given blob image and user_id, saves the image to the user's image directory
+ * @param {Object} image 
+ * @param {number} user_id 
+ */
+
+async function add_profile_picture(image, user_id) {
+
+    const pipelineAsync = promisify(pipeline);
+
+    if (!image || image.size === 0) {
+        throw new Error('No image provided');
+    }
+
+    const file_name = String(Date.now());
+    const img_path = path.join(process.env.REVIEWER_PLUS_IMG_DIR, file_name);
+
+    // Ensure the upload directory exists
+    if (!fs.existsSync(process.env.REVIEWER_PLUS_IMG_DIR)) {
+        fs.mkdirSync(process.env.REVIEWER_PLUS_IMG_DIR, { recursive: true });
+    }
+
+    // Save the file to the directory
+    const file_stream = fs.createWriteStream(img_path);
+
+    if (typeof image.stream !== 'function') {
+        throw new Error('Invalid image object: missing stream method');
+    }
+
+    const image_stream = image.stream();
+
+    try {
+        await pipelineAsync(image_stream, file_stream);
+    } catch (error) {
+        throw new Error(`Failed to save image: ${error.message}`);
+    }
+
+    // Update the user's profile picture path in the database
+    try {
+        const result = await db.query(
+            `UPDATE user SET user_profile_path = '${file_name}' WHERE user_id = ${user_id}`
+        );
+
+        if (result.affectedRows === 0) {
+            throw new Error('Failed to update profile picture');
+        }
+        return result;
+    } catch (error) {
+        throw new Error(`Database error: ${error.message}`);
+    }
+}
+/**
+ * Checks if registration is enabled
+ * @returns {boolean}
+ */
+function registrable() {
+
+    if (process.env.REVIEWER_PLUS_REGISTRATION_ENABLED === undefined) {
+        return false;
+    }
+
+    return process.env.REVIEWER_PLUS_REGISTRATION_ENABLED === 'true' ? true : false;
+}
+
 export default {
     validate_master_api_key,
     validate_api_key,
     validate_date,
     validate_user_privilege,
     validate_url,
-    download_image
+    download_image,
+    add_profile_picture,
+    registrable
 }
-

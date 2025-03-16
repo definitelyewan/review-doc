@@ -1,14 +1,17 @@
 <script>
     import ReviewRadial from '$lib/client/review_radial.svelte';
     import CompactBox from '$lib/client/compact_box.svelte';
+    import DynamicAvatar from '$lib/client/dynamic_avatar.svelte';
     import { Avatar } from '@skeletonlabs/skeleton';
     import { TabGroup, Tab} from '@skeletonlabs/skeleton';
     import corr from '$lib/client/corrections.js';
+    import { page } from '$app/stores';
     export let data;
 
     let elemNewestMovies;
     let elemMostAcclaimedMovies;
     let tabSet = 0;
+    const user_name = data.user_name;  
     const newest_reviews = data.newest_reviews;
     const most_acclaimed = data.most_acclaimed;
     const score_counts = data.score_counts;
@@ -26,7 +29,6 @@
         if (elem.scrollLeft < elem.scrollWidth - elem.clientWidth - 1) x = elem.scrollLeft + elem.clientWidth;
         elem.scroll(x, 0);
     }
-
 
 </script>
 
@@ -48,11 +50,13 @@
                     <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-10 rounded-lg z-0">
                         <div class="absolute inset-0 bg-cover bg-center rounded-lg" style="background-image: url('/api/media/image/{review.media.media_id}/banner');"></div>
                     </div>
-                    <div class="flex items-center">
-                        <Avatar
-                            width="w-4"
-                            initials={review.user.user_name}
-                            background="bg-primary-500"
+                    <div class="flex items-center mb-1">
+                        <DynamicAvatar
+                            user_id={review.user.user_id}
+                            width="w-6"
+                            user_initals={review.user.user_icon_text}
+                            user_colour={review.user.user_icon_colour}
+                            user_image={review.user.user_profile_path}
                         />
                         <p class="ml-2">{review.user.user_name}</p>
                     </div>
@@ -86,6 +90,7 @@
             </a>
         {/each}
     </div>
+    
     <!-- Buttons -->
     <div class="flex justify-center mt-2 ml-2 mr-2">
         <!-- Button: Left -->
@@ -122,9 +127,13 @@
                     review_sub_name="{review.review_sub_name}"
                     review_score="{review.review_score}"
                     user_name="{review.user_name}"
+                    initials="{review.user_icon_text}"
+                    color="{review.user_icon_colour}"
                     media_id="{review.media_id}"
                     media_type="{review.media_type}"
                     review_date="{review.review_date}"
+                    user_profile_path="{review.user_profile_path}"
+                    user_id="{review.user_id}"
                 />
             </a>
         </div>
@@ -242,10 +251,12 @@
         <a href="user/{user.user_id}">
             <div class="relative card mx-2 my-2 p-2 w-80 shadow-lg rounded-lg flex flex-col flex-grow-0">
                 <div class="flex items-center">
-                    <Avatar
+                    <DynamicAvatar
+                        user_id={user.user_id}
                         width="w-12"
-                        initials={user.user_name}
-                        background="bg-primary-500"
+                        user_initals={user.user_icon_text}
+                        user_colour={user.user_icon_colour}
+                        user_image={user.user_profile_path}
                     />
                     <p class="ml-2 text-xl">{user.user_name}</p>
                 </div>

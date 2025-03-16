@@ -1,5 +1,5 @@
 <script>
-    import { Avatar } from '@skeletonlabs/skeleton';
+    import DynamicAvatar from '$lib/client/dynamic_avatar.svelte';
     import corr from '$lib/client/corrections.js';
     import ReviewRadial from '$lib/client/review_radial.svelte';
 
@@ -11,9 +11,13 @@
     export let review_score;
     export let user_name;
     export let media_id;
+    export let initials;
+    export let color;
+    export let user_profile_path;
+    export let user_id;
 
     let review_year = new Date(review_date).getFullYear();
-    let banner_url = `/api/media/image/${media_id}/banner`;
+
 </script>
 
 <div class="mt-2">
@@ -65,10 +69,13 @@
             <p class="text-2xl text-left">{media_name}</p>
             <div class="flex items-center">
                 {#if user_name != null}
-                    <Avatar
+                    <DynamicAvatar
+                        user_id={user_id}
                         width="w-4"
-                        initials={user_name}
-                        background="bg-primary-500"
+                        user_initals={initials}
+                        user_colour={color}
+                        user_image={user_profile_path}
+
                     />
                     <p class="ml-2">{user_name}</p>
                 {/if}

@@ -56,7 +56,6 @@
                         review_score="{row.value.review_score}"
                         media_id="{row.value.media_id}"
                         review_date="{row.value.review_date}"
-
                     />
                 </a>
             </div>

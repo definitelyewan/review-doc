@@ -1,27 +1,95 @@
 <script>
-	import { Avatar } from '@skeletonlabs/skeleton';
     import ReviewRadial from '$lib/client/review_radial.svelte';
-
     import corr from '$lib/client/corrections.js';
+    import { page } from '$app/stores';
+    import DynamicAvatar from '$lib/client/dynamic_avatar.svelte';
 
     export let users = [];
     export let review = {};
     export let media_type;
+    //export let interaction = {};
+
+    let media_data = $page.data.media_data;
+    let media_id = media_data.media_id;
+    let reviewInfo = media_data.reviewInfo;
+
+    const reviewCheck = reviewInfo.find(iter => iter.review_id === review.review_id);
+
+    const interactionCount = reviewCheck ? reviewCheck.interactions.length : 0;
+    const reviewIndex = reviewInfo.findIndex(iter => iter.review_id === review.review_id);
+
+    //console.log(`Number of interactions for review_id ${reviewIdToCheck}:`, interactionCount);
+
+    let interactions = [];
+    reviewInfo.forEach(review => {
+        review.interactions.forEach(interaction => {
+            interactions.push(interaction);
+        });
+    });
+
+    
+    // Comment system state
+    let showComments = false;
+    let commentText = '';
+    let comments = review.comments || [];
+    
+    function toggleComments() {
+        showComments = !showComments;
+    }
+    
+    async function addComment() {
+        if (!commentText.trim()) return;
+
+        console.log(`Adding comment: ${commentText}`);
+    }
+    
+    function deleteComment(commentId) {
+        comments = comments.filter(comment => comment.id !== commentId);
+        
+        // TO DO: BACK END DELETE COMENT
+    }
+    
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    }
 
 	function user_id_index_to_user_name(user_id_index) {
 		return users[user_id_index].user_name;
 	}
 
+    function user_id_index_to_user_initials(user_id_index) {
+		return users[user_id_index].user_icon_text;
+	}
+
+    function user_id_index_to_user_colour(user_id_index) {
+		return users[user_id_index].user_icon_colour;
+	}
+
+    function user_id_index_to_user_pfp(user_id_index) {
+		return users[user_id_index].user_profile_path;
+	}
+    
+    // Find user in users array by ID
+    function findUserById(userId) {
+        return users.find(user => user.user_id === userId);
+    }
 </script>
 
 <div class="card w-full max-w-full ml-2 mr-2 mb-2 p-2 inline-block">
     <div class="flex items-center mb-2">
-        <Avatar
-            width="w-12"
-            initials={user_id_index_to_user_name(
+        <DynamicAvatar
+            user_id={review.user_id}
+            user_image={user_id_index_to_user_pfp(
                 users.findIndex((item) => item['user_id'] === review.user_id)
             )}
-            background="bg-primary-500"
+            user_initals={user_id_index_to_user_initials(
+                users.findIndex((item) => item['user_id'] === review.user_id)
+            )}
+            user_colour={user_id_index_to_user_colour(
+                users.findIndex((item) => item['user_id'] === review.user_id)
+            )}
+            width="w-12"
         />
         <div class="ml-2 flex items-center">
             <b class="text-2xl">
@@ -68,4 +136,82 @@
             <img alt="." src="../{corr.platform_to_svg_name(review.review_platform)}" class="w-6 h-6 ml-2" />
         </div>
     {/if}
+    
+    <!-- Comments Section -->
+    <div class="mt-4">
+            <button 
+                class="p-2 bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-lg w-full flex items-center justify-center"
+                on:click={toggleComments}
+            >
+                <span>{showComments ? 'Hide Comments' : 'Show Comments'}</span>
+                <span class="ml-2 badge variant-filled">{interactionCount}</span>
+            </button>
+        
+        {#if showComments}
+            <div class="mt-2 card p-4 bg-surface-100-800-token">
+                <!-- Comment Form -->
+                {#if $page.data.user}
+                <div class="flex flex-col mb-4">
+                    <form action="/../../media/{media_id}?/addComment" method="POST" >
+                        <textarea
+                            class="input w-full rounded-sm p-2 mb-2"
+                            rows="2"
+                            name="commentText"
+                            bind:value={commentText}
+                            placeholder="Add a comment..."
+                        ></textarea>
+                        <input type="hidden" name="review_id" value={review.review_id} />
+                        <button 
+                            class="self-end p-2 text-white rounded-lg 
+                                {commentText.trim() ? 'bg-primary-500 hover:bg-primary-600' : 'bg-gray-400 cursor-not-allowed'}"
+                            on:click={() => window.location.href = `/media/${media_id}/?review=${review.review_id}`}
+                            disabled={!commentText.trim()}
+                        >
+                            Post Comment
+                        </button>
+                    </form>
+                </div>
+                {:else}
+                    <p class="text-center p-2 mb-2">Please log in to comment</p>
+                {/if}
+                
+                <!-- Comments List -->
+                <div class="space-y-3 mt-2">
+                    {#if interactionCount}
+                        {#each reviewInfo[reviewIndex].interactions as comment}
+                            <div class="p-3 bg-surface-200-700-token rounded-lg">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex items-center">
+                                        <DynamicAvatar
+                                            user_id={comment.interaction_user_id}
+                                            width="w-12"
+                                            user_initals={comment.user_icon_text}
+                                            user_colour={comment.user_icon_colour}
+                                            user_image={comment.user_profile_path}
+
+                                        />
+                                        <span class="ml-2 font-semibold">{comment.user_name}</span>
+                                    </div>
+                                    {#if $page.data.user && comment.interaction_user_id === $page.data.user.id}
+                                    <form action="/../../media/{media_id}?/deleteComment" method="POST">
+                                        <input type="hidden" name="interaction_id" value={comment.interaction_id} />
+                                        <button 
+                                            type="submit"
+                                            class="text-error-500 hover:text-error-600 p-1"
+                                        >
+                                            Delete
+                                        </button>
+                                    </form>
+                                    {/if}
+                                </div>
+                                <p class="mt-2">{comment.interaction_comment}</p>
+                            </div>
+                        {/each}
+                    {:else}
+                        <p class="text-center text-surface-400-500-token">No comments yet. Be the first to comment!</p>
+                    {/if}
+                </div>
+            </div>
+        {/if}
+    </div>
 </div>
