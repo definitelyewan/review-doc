@@ -125,12 +125,24 @@ export const load = async ({ params, locals }) => {
               review_limit: row.review_limit,
               review_platform: row.review_platform,
               user_id: row.user_id,
-              interactions: []
+              interactions: [],
+              likeCount: 0,
+              isLiked: 0
           };
       }
 
       // If there is an interaction, add it to the array
       if (row.interaction_id) {
+          let isLiked = false;
+
+          if (row.interaction_value == 'like'){
+            reviewMap[reviewId].likeCount = reviewMap[reviewId].likeCount + 1;
+            //console.log("Like: "+ reviewMap[reviewId].likeCount);
+          }
+          if (row.interaction_value == 'like' && locals.user.id == row.interaction_user_id){
+            reviewMap[reviewId].isLiked = 2;
+            //console.log("TRUE");
+          }
           reviewMap[reviewId].interactions.push({
               interaction_id: row.interaction_id,
               interaction_value: row.interaction_value,
@@ -139,7 +151,8 @@ export const load = async ({ params, locals }) => {
               user_name: row.user_name,
               user_icon_text: row.user_icon_text,
               user_icon_colour: row.user_icon_colour,
-              user_profile_path: row.user_profile_path
+              user_profile_path: row.user_profile_path,
+              interaction_like: isLiked
           });
       }
   });
@@ -604,6 +617,7 @@ export const actions = {
       tags = tags.filter((tag) => !current_applied_tags.includes(tag));
 
       tags.forEach(async (unapplied_tag) => {
+        unapplied_tag = db.sanitize_input(unapplied_tag);
         let tag_id = await db.query(
           `SELECT tag_id from tag WHERE tag_name = '${unapplied_tag}'`
         );
@@ -715,4 +729,80 @@ export const actions = {
           return { success: false, message: "Server error during deletion" };
         }
       },
+
+      toggleLike: async ({ request, locals }) => {
+        const formData = await request.formData();
+        const reviewId = formData.get("review_id");
+        const userId = locals.user?.id; // Ensure user is authenticated
+        //console.log(reviewId);
+    
+        if (!userId || !reviewId) {
+            return fail(400, { missing_fields: true });
+        }
+    
+        try {
+            // Check if user already has an interaction for this review
+            const existingInteraction = await db.query(`
+              SELECT interaction.interaction_id, interaction.interaction_value 
+              FROM interaction
+              JOIN interaction_of_review ON interaction.interaction_id = interaction_of_review.interaction_id
+              WHERE interaction.user_id = ${userId} 
+              AND interaction_of_review.review_id = ${reviewId}
+              AND interaction.interaction_value = 'like'
+          `);
+          
+            console.log(existingInteraction);
+    
+            if (existingInteraction.length > 0) {
+              const { interaction_id } = existingInteraction[0];
+
+              console.log("Removing existing like...");
+          
+              // First, delete from interaction_of_review to maintain referential integrity
+              await db.query(`
+                  DELETE FROM interaction_of_review 
+                  WHERE interaction_id = ${interaction_id}
+              `);
+          
+              // Then, delete from interaction table
+              await db.query(`
+                  DELETE FROM interaction 
+                  WHERE interaction_id = ${interaction_id}
+              `);
+
+              return { success: true, toggledLike: "removed" };
+
+            } else {
+                // Insert new interaction
+                const insertInteraction = await db.query(`
+                    INSERT INTO interaction (user_id, interaction_value) 
+                    VALUES (${userId}, 'like')
+                `);
+    
+                const interactionId = insertInteraction.insertId;
+                if (!interactionId) {
+                    throw new Error("Failed to retrieve interaction ID.");
+                }
+    
+                // Associate with review
+                await db.query(`
+                    INSERT INTO interaction_of_review (interaction_id, review_id) 
+                    VALUES (${interactionId}, ${reviewId})
+                `);
+
+                const likeCountResult = await db.query(`
+                    SELECT COUNT(*) AS count FROM interaction_of_review ir
+                    INNER JOIN interaction i ON ir.interaction_id = i.interaction_id
+                    WHERE ir.review_id = ${reviewId} AND i.interaction_value = 'like'
+                `);
+      
+                console.log("ℹ️ Like Count Query Result:", likeCountResult);
+
+                return { success: true, likeCount: likeCountResult[0].count};
+            }
+        } catch (error) {
+            console.error("Error toggling like:", error);
+            return fail(500, { server_error: true, error: error.message });
+        }
+    },    
 };

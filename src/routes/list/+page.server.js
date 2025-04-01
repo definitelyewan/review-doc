@@ -59,14 +59,12 @@ function redefine_key(obj, old_key, new_key) {
 
 export const load = async ({ locals }) => {
 
+  let mediaResults = [];
+  let userLists = [];
+  let collaborativeLists = [];
+  let mediaByList = {};
 
   try {
-    let mediaResults = [];
-    let userLists = [];
-    let collaborativeLists = [];
-    let mediaByList = {};
-    
-
 
     const tag_results = await get_media_with_popular_descriptor("tag", 2);
     const director_results = await get_media_with_popular_descriptor("director", 1);
@@ -162,7 +160,7 @@ export const load = async ({ locals }) => {
                                     FROM user 
                                     WHERE user_id != ${locals.user.id}`);
     let formatedUsers = [];
-
+    
     allUsers.forEach((user) => {
       user.label = user.user_name;
       user.value = {
@@ -183,7 +181,7 @@ export const load = async ({ locals }) => {
     };
   } catch (error) {
     console.error("Database error:", error);
-    return { formatedUsers: [], mediaResults: [], userLists: [], mediaByList: {} };
+    return { formatedUsers: [], mediaResults, userLists: [], mediaByList: {} };
   }
 };
 

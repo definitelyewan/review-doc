@@ -39,9 +39,10 @@ export async function POST ({ request }) {
         await db.drop_table("review");
         await db.drop_table("award");
         await db.drop_table("media");
-        await db.drop_table("user");
+
         await db.drop_table("list");
         await db.drop_table("interaction");
+        await db.drop_table("user");
 
     } catch (err) {
         console.error(err);

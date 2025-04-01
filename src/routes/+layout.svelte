@@ -79,7 +79,10 @@
                     <div class={`absolute top-full left-0 w-full md:static ${isMenuOpen ? 'block' : 'hidden'} md:flex z-50`}>
                         <ul class="font-medium flex flex-col md:p-0 mt-2 border bg-surface-700 rounded-lg md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0">
                             <li>
-                                <a href="/list" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0">List's</a>
+                                <a href="/stats" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0">Stats</a>
+                            </li>
+                            <li>
+                                <a href="/list" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0">Lists</a>
                             </li>
                             <li>
                                 <a href="/media" class="block mt-1 mb-1 mr-1 ml-1 rounded dark:hover:variant-filled md:hover:variant-filled md:border-0 md:p-0">Media</a>

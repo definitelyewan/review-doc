@@ -7,12 +7,14 @@
 
     let elemNewestMovies;
     let elemMostAcclaimedMovies;
+    let elemSuggestedMedia;
     let tabSet = 0;
     const newest_reviews = data.newest_reviews;
     const most_acclaimed = data.favs;
     const score_counts = data.score_counts;
     const user = data.user;
-
+    const suggested_media = data.suggested_media;
+    
     function multiColumnLeft(elem) {
         let x = elem.scrollWidth;
         if (elem.scrollLeft !== 0) x = elem.scrollLeft - elem.clientWidth;
@@ -165,6 +167,57 @@
             <span class="text-md p-2">View all reviews</span>
         </a>
     </button>
+</div>
+
+<div class="mt-4 mr-2 ml-2 space-y-4">
+    <hr class="hr border-t-8" />
+</div>
+
+<div class="mt-2 mb-2">
+    <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0">
+        <p class="text-2xl"><b>Suggested Media</b></p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 gap-4 items-center">
+    <div bind:this={elemSuggestedMedia} class="snap-x snap-mandatory scroll-smooth flex gap-2 pb-2 overflow-x-auto">
+        {#each suggested_media as review}
+            <a href="../media/{review.media.media_id}">
+                <div class="relative card mx-2 my-2 p-2 max-w-full shadow-lg rounded-lg flex flex-col items-center flex-grow-0 w-40 h-96 -z-10">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-10 rounded-lg z-0">
+                        <div class="absolute inset-0 bg-cover bg-center rounded-lg" style="background-image: url('/api/media/image/{review.media.media_id}/banner');"></div>
+                    </div>
+                    <div class="flex-shrink-0 w-full flex justify-center items-center">
+                        <img
+                            class="rounded-md w-36 h-52 object-cover z-10"
+                            src="/api/media/image/{review.media.media_id}/cover"
+                            alt={review.media.media_name}
+                        />
+                    </div>
+                    
+                    <p class="text-center text-xl mb-2" style="font-size: {corr.calculate_title_font_size(review.media.media_name, 9, 20)}">{review.media.media_name}</p>
+
+                    <ReviewRadial class="mt-2" score={review.review_score} width="w-16"/>
+                    
+                    {#if review.review_sub_name != null}
+                        {#if review.media.media_type == 'tv'}
+                            {#if isNaN(review.review_sub_name) === true}
+                                <p class="text-center text-xl mb-2" style="font-size: {corr.calculate_title_font_size(`Seasons ${review.review_sub_name.split(' ')[0]} - ${review.review_sub_name.split(' ')[review.review_sub_name.split(' ').length - 1]}`, 7, 20)}">
+                                    Seasons {review.review_sub_name.split(' ')[0]} - {review.review_sub_name.split(' ')[review.review_sub_name.split(' ').length - 1]}
+                                </p>
+                            {:else}
+                                <p class="text-center mb-1">Season {review.review_sub_name}</p>
+                            {/if}
+                        {:else}
+                            <p class="text-center text-xl mb-2" style="font-size: {corr.calculate_title_font_size(review.review_sub_name, 7, 20)}">
+                                {review.review_sub_name}
+                            </p>
+                        {/if}
+                    {/if}
+                </div>
+            </a>
+        {/each}
+    </div>
 </div>
 
 <div class="mt-4 mr-2 ml-2 space-y-4">

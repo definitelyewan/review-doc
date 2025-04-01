@@ -36,7 +36,8 @@ function sanitize_input(input) {
         .replace(/'/g, "\\'")    // Escape single quotes
         .replace(/"/g, '\\"')    // Escape double quotes
         .replace(/\x00/g, '\\0') // Escape null bytes
-        .replace(/\x1a/g, '\\Z'); // Escape ASCII 26 (Ctrl+Z)
+        .replace(/\x1a/g, '\\Z') // Escape ASCII 26 (Ctrl+Z)
+        .replace(/--/g, '\\-\\-'); // Replace comment characters
 }
 
 

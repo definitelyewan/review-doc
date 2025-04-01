@@ -211,11 +211,8 @@
                                                 {#if form?.success === false}
                                                     <p class="text-center text-error-500">{form.message}</p>
                                                 {:else if form?.success === true}
-                                                    {@html refresh_page()}
-                                
+                                                    {@html refresh_page()}            
                                                 {/if}
-
-
 
                                             </div>
                                         </svelte:fragment>
@@ -255,6 +252,7 @@
                     <p class="text-sm text-gray-400">Media distributed by {tag.name}</p>
                 {/if}
                 <svelte:fragment slot="children">
+                    <a class="badge variant-filled" href="/list/{tag.name}#top"> View details</a>
                     <div class="mt-1 mb-8">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {#each groupedAutoMedia[`${tag.name}_${tag.type}`] as media (media.media_id)}

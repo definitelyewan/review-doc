@@ -33,5 +33,21 @@ export const load = async (loadEvent) => {
   const favs = await db.query(`SELECT media.* FROM list INNER JOIN list_of INNER JOIN media WHERE list.list_id = list_of.list_id AND list.user_id = ${params.id} AND list_of.media_id = media.media_id AND list.list_name = 'Favourites'`);
 
 
-  return { newest_reviews, score_counts, user, favs };
+  let suggested_media = await db.query(
+    `SELECT user_id, review_id, media_id, review_score, review_sub_name FROM review ORDER BY review_score DESC LIMIT 10`
+  );
+
+  suggested_media = await Promise.all(
+    suggested_media.map(async (review) => {
+      let media = await db.query(
+        `SELECT media_id, media_name, media_type FROM media WHERE media_id = ${review.media_id} LIMIT 1`
+      );
+
+      review.media = media[0];
+      delete review.media_id;
+      return review;
+    })
+  );
+
+  return { newest_reviews, score_counts, user, favs, suggested_media };
 };

@@ -7,18 +7,27 @@
     export let users = [];
     export let review = {};
     export let media_type;
-    //export let interaction = {};
+    export let form;
 
     let media_data = $page.data.media_data;
     let media_id = media_data.media_id;
     let reviewInfo = media_data.reviewInfo;
 
     const reviewCheck = reviewInfo.find(iter => iter.review_id === review.review_id);
-
-    const interactionCount = reviewCheck ? reviewCheck.interactions.length : 0;
     const reviewIndex = reviewInfo.findIndex(iter => iter.review_id === review.review_id);
 
-    //console.log(`Number of interactions for review_id ${reviewIdToCheck}:`, interactionCount);
+    // Count only interactions where interaction_comment is NOT null
+    const interactionCount = reviewCheck
+        ? reviewCheck.interactions.filter(comment => comment.interaction_comment !== null).length
+        : 0;
+
+    // Initialize with values from reviewInfo
+    let reviewIsLiked = reviewInfo[reviewIndex].isLiked === 2; // can convert to boolean for easier comparison
+    let reviewLikeCount = reviewInfo[reviewIndex].likeCount || 0; // default to 0 if undefined
+
+    //  log initial values
+    console.log("Initial reviewIsLiked:", reviewIsLiked);
+    console.log("Initial reviewLikeCount:", reviewLikeCount);
 
     let interactions = [];
     reviewInfo.forEach(review => {
@@ -26,7 +35,6 @@
             interactions.push(interaction);
         });
     });
-
     
     // Comment system state
     let showComments = false;
@@ -39,14 +47,11 @@
     
     async function addComment() {
         if (!commentText.trim()) return;
-
         console.log(`Adding comment: ${commentText}`);
     }
     
     function deleteComment(commentId) {
         comments = comments.filter(comment => comment.id !== commentId);
-        
-        // TO DO: BACK END DELETE COMENT
     }
     
     function formatDate(dateString) {
@@ -74,9 +79,49 @@
     function findUserById(userId) {
         return users.find(user => user.user_id === userId);
     }
+
+    // Manual toggle function for immediate UI update
+    function toggleLike(event) {
+        event.preventDefault();
+        
+        if (!$page.data.user) {
+            alert('Please log in to like reviews');
+            return;
+        }
+        
+        // Toggle like state immediately for UI
+        reviewIsLiked = !reviewIsLiked;
+        reviewLikeCount = reviewIsLiked ? reviewLikeCount + 1 : Math.max(0, reviewLikeCount - 1);
+        
+        // Log the updated state
+        console.log("After toggle - reviewIsLiked:", reviewIsLiked);
+        console.log("After toggle - reviewLikeCount:", reviewLikeCount);
+        
+        // Submit the form
+        const formData = new FormData();
+        formData.append('review_id', review.review_id);
+        formData.append('action', reviewIsLiked ? 'like' : 'unlike');
+        
+        fetch(`/media/${media_id}?/toggleLike`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.success) {
+                console.log("Server response:", data);
+                reviewIsLiked = data.isLiked === 2;
+                reviewLikeCount = data.likeCount || 0;
+            }
+        })
+        .catch(error => {
+            console.error("Error toggling like:", error);
+        });
+    }
 </script>
 
 <div class="card w-full max-w-full ml-2 mr-2 mb-2 p-2 inline-block">
+    <!-- Avatar and user info section -->
     <div class="flex items-center mb-2">
         <DynamicAvatar
             user_id={review.user_id}
@@ -104,6 +149,7 @@
         <hr class="hr border-t-8" />
     </div>
 
+    <!-- Review content section -->
     <div class="grid grid-cols-1 md:flex md:flex-row items-start p-2">
         <div class="flex flex-col items-center justify-center md:mr-4">
             
@@ -127,9 +173,26 @@
             {/each}
         </ul>
     </div>
+    
     <div class="space-y-4">
         <hr class="hr border-t-8" />
     </div>
+    
+    <!-- Like Button -->
+    <div class="flex items-center justify-start ml-4 mt-2">
+        <form on:submit|preventDefault={toggleLike} class="flex items-center gap-2">
+            <input type="hidden" name="review_id" value="{review.review_id}" />
+            <button type="submit" class="flex items-center justify-center p-2 rounded-lg">
+                <span class="text-3xl {reviewIsLiked ? 'text-red-500' : 'text-surface-700 hover:text-red-400'}">
+                    {reviewIsLiked ? '♥' : '♡'}
+                </span>
+            </button>
+            <span class="text-white font-semibold">
+                {reviewLikeCount} {reviewLikeCount === 1 || reviewLikeCount === 0? 'Like' : 'Likes'}
+            </span>
+        </form>
+    </div>
+    
     {#if review.review_platform != null}
         <div class="flex items-center mt-2">
             <p class="text-sm">Experienced on/in {review.review_platform}</p>
@@ -139,13 +202,13 @@
     
     <!-- Comments Section -->
     <div class="mt-4">
-            <button 
-                class="p-2 bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-lg w-full flex items-center justify-center"
-                on:click={toggleComments}
-            >
-                <span>{showComments ? 'Hide Comments' : 'Show Comments'}</span>
-                <span class="ml-2 badge variant-filled">{interactionCount}</span>
-            </button>
+        <button 
+            class="p-2 bg-surface-100 hover:bg-surface-200 text-slate-900 rounded-lg w-full flex items-center justify-center"
+            on:click={toggleComments}
+        >
+            <span>{showComments ? 'Hide Comments' : 'Show Comments'}</span>
+            <span class="ml-2 badge variant-filled">{interactionCount}</span>
+        </button>
         
         {#if showComments}
             <div class="mt-2 card p-4 bg-surface-100-800-token">
@@ -178,7 +241,7 @@
                 <!-- Comments List -->
                 <div class="space-y-3 mt-2">
                     {#if interactionCount}
-                        {#each reviewInfo[reviewIndex].interactions as comment}
+                    {#each reviewInfo[reviewIndex].interactions.filter(comment => comment.interaction_comment) as comment}
                             <div class="p-3 bg-surface-200-700-token rounded-lg">
                                 <div class="flex justify-between items-start">
                                     <div class="flex items-center">
